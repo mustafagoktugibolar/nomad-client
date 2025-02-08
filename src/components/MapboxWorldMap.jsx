@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import WorldMapTooltip from "./WorldMapTooltip"; // Import the Tooltip component
+import WorldMapTooltip from "./WorldMapTooltip"; 
 
 const MapboxWorldMap = () => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const [popupInfo, setPopupInfo] = useState(null);
   const [selectedCountryId, setSelectedCountryId] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false); 
 
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -17,14 +18,22 @@ const MapboxWorldMap = () => {
         container: mapContainerRef.current,
         style: "mapbox://styles/mapbox/light-v11?optimize=true",
         projection: "mercator",
-        center: [0, 20],
-        zoom: 2,
+        center: [0, 0],
+        zoom: 0.1,
         doubleClickZoom: false,
-        minZoom: 1.8,
-        maxZoom: 6,
       });
 
       mapRef.current.on("load", () => {
+        mapRef.current.fitBounds(
+          [
+            [-160, -55],
+            [160, 75],
+          ],
+          { padding: 10, animate: false }
+        );    
+
+        setMapLoaded(true); 
+
         mapRef.current.addSource("countries", {
           type: "vector",
           url: "mapbox://mapbox.country-boundaries-v1",
@@ -84,9 +93,10 @@ const MapboxWorldMap = () => {
         width: "100vw",
         height: "100vh",
         position: "relative",
+        visibility: mapLoaded ? "visible" : "hidden",
       }}
     >
-      {/* Use the new Tooltip component */}
+      {/* Use the Tooltip component */}
       <WorldMapTooltip popupInfo={popupInfo} />
     </div>
   );
