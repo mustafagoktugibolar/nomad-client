@@ -18,21 +18,22 @@ const MapboxWorldMap = () => {
         container: mapContainerRef.current,
         style: "mapbox://styles/mapbox/light-v11?optimize=true",
         projection: "mercator",
-        center: [0, 0],
-        zoom: 0.1,
         doubleClickZoom: false,
       });
 
       mapRef.current.on("load", () => {
-        mapRef.current.fitBounds(
-          [
-            [-160, -55],
-            [160, 75],
-          ],
-          { padding: 10, animate: false }
-        );    
+        console.log("Map Loaded");
+        setMapLoaded(true);
 
-        setMapLoaded(true); 
+        setTimeout(() => {
+          mapRef.current.fitBounds(
+            [
+              [-160, -55], 
+              [160, 75],
+            ],
+            { padding: 10, animate: false }
+          );
+        });
 
         mapRef.current.addSource("countries", {
           type: "vector",
