@@ -1,14 +1,10 @@
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import MapboxWorldMap from './components/MapboxWorldMap'
+import MapboxLayout from "./components/MapboxLayout";
 
 function App() {
-  return (
-    <div className="container m-0 p-0">
-      <MapboxWorldMap />
-    </div>
-  );
+  return <MapboxLayout />;
 }
 
 export default App

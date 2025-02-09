@@ -16,9 +16,10 @@ const MapboxWorldMap = () => {
     if (!mapRef.current) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style: "mapbox://styles/mapbox/light-v11?optimize=true",
+        style: "mapbox://styles/mapbox/streets-v12?optimize=true",
         projection: "mercator",
         doubleClickZoom: false,
+        testMode: true,
       });
 
       mapRef.current.on("load", () => {
