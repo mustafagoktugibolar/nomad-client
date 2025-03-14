@@ -1,10 +1,23 @@
-const CountryList = ({ countries, searchTerm, onSelectCountry }) => {
+import React from "react";
+
+interface Country {
+  name: string;
+  flag: string;
+}
+
+interface CountryListProps {
+  countries: Country[];
+  searchTerm: string;
+  onSelectCountry: (countryName: string) => void;
+}
+
+const CountryList: React.FC<CountryListProps> = ({ countries, searchTerm, onSelectCountry }) => {
   return (
     <div
       style={{
         flex: 1,
         overflowY: "auto",
-        maxHeight: "calc(100% - 30px)", // fills remaining space minus 30px
+        maxHeight: "calc(100% - 30px)",
         backgroundColor: "#F8F9FB",
       }}
     >

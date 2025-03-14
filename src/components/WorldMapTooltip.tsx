@@ -1,7 +1,17 @@
 import React from "react";
 import { Card } from "react-bootstrap";
 
-const WorldMapTooltip = ({ popupInfo }) => {
+interface PopupInfo {
+  name: string;
+  lng: number;
+  lat: number;
+}
+
+interface WorldMapTooltipProps {
+  popupInfo: PopupInfo | null;
+}
+
+const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
   if (!popupInfo) return null;
 
   return (
