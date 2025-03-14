@@ -3,6 +3,7 @@ import { Card, Button } from "react-bootstrap";
 import CountrySelector from "./CountrySelector";
 import PassportSelector from "./PassportSelector";
 import SearchBar from "./SearchBar";
+import StepNavigation from "./StepNavigation";
 
 const SideSelector = () => {
   const [step, setStep] = useState("country");
@@ -30,20 +31,14 @@ const SideSelector = () => {
         }}
       >
         <Card.Body className="d-flex flex-column">
-          {/* ✅ Step Navigation */}
-          <div className="d-flex align-items-center mb-3">
-            <span className={`fw-bold me-2 ${step === "country" ? "text-primary" : "text-muted"}`}>
-              1 Ülke Seç
-            </span>
-            <span className="text-muted mx-2">→</span>
-            <span className={`fw-bold ${step === "passport" ? "text-primary" : "text-muted"}`}>
-              2 Pasaport Seç
-            </span>
-          </div>
+          <StepNavigation step={step}/>
 
           {/* ✅ Step 1: Country Selection */}
           {step === "country" && (
-            <CountrySelector
+            <CountrySelector style={{
+              height: "calc(100vh - 120px)",
+              overflowY: "auto", 
+            }}
               onSelectCountry={(country) => {
                 setSelectedCountry(country);
                 setStep("passport");
