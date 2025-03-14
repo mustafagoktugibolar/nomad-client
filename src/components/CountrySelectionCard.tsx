@@ -1,10 +1,23 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card } from "react-bootstrap";
 import CountrySearchInput from "./CountrySearchInput";
 import CountryList from "./CountryList";
 
-const CountrySelectionCard = ({ countries, onSelectCountry }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+interface Country {
+  name: string;
+  flag: string;
+}
+
+interface CountrySelectionCardProps {
+  countries: Country[];
+  onSelectCountry: (countryName: string) => void;
+}
+
+const CountrySelectionCard: React.FC<CountrySelectionCardProps> = ({
+  countries,
+  onSelectCountry,
+}) => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   return (
     <Card

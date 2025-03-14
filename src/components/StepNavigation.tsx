@@ -1,7 +1,13 @@
 import React from "react";
 import "../styles/StepNavigation.css";
 
-const StepNavigation = ({ step }) => {
+type StepType = "country" | "passport";
+
+interface StepNavigationProps {
+  step: StepType;
+}
+
+const StepNavigation: React.FC<StepNavigationProps> = ({ step }) => {
   return (
     <div className="d-flex align-items-center">
       {/* Step 1 */}
@@ -13,7 +19,11 @@ const StepNavigation = ({ step }) => {
         >
           1
         </span>
-        <span className={`step-label ${step === "country" ? "fw-normal" : "fw-lighter"} text-black`}>
+        <span
+          className={`step-label ${
+            step === "country" ? "fw-normal" : "fw-lighter"
+          } text-black`}
+        >
           Ülke Seç
         </span>
       </div>
@@ -30,7 +40,11 @@ const StepNavigation = ({ step }) => {
         >
           2
         </span>
-        <span className={`step-label ${step === "passport" ? "fw-normal" : "fw-lighter"} text-black`}>
+        <span
+          className={`step-label ${
+            step === "passport" ? "fw-normal" : "fw-lighter"
+          } text-black`}
+        >
           Pasaport Seç
         </span>
       </div>

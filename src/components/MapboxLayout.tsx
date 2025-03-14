@@ -2,13 +2,13 @@ import React from "react";
 import MapboxWorldMap from "./MapboxWorldMap";
 import SideSelector from "./SideSelector";
 
-const MapboxLayout = () => {
+const MapboxLayout: React.FC = () => {
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-      {/* ✅ Fullscreen Map */}
+      {/* Fullscreen Map */}
       <MapboxWorldMap />
 
-      {/* ✅ Floating SideSelector */}
+      {/* Floating SideSelector */}
       <SideSelector />
     </div>
   );

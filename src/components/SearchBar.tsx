@@ -1,12 +1,28 @@
 import React from "react";
 import { Form, InputGroup, Container } from "react-bootstrap";
 import { FaBars, FaSearch } from "react-icons/fa";
-import classNames from "classnames"; // Importing classnames package
+import classNames from "classnames";
 
-const SearchBar = ({
+interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+  width?: string;
+  placeholder?: string;
+  onSearchChange?: (value: string) => void;
+  menuIcon?: React.ComponentType<any>;
+  searchIcon?: React.ComponentType<any>;
+  value?: string;
+  showMenuIcon?: boolean;
+  showSearchIcon?: boolean;
+  containerClass?: string;
+  inputGroupClass?: string;
+  inputClass?: string;
+  iconClass?: string;
+}
+
+
+const SearchBar: React.FC<SearchBarProps> = ({
   width = "100%",
   placeholder = "Search...",
-  onSearchChange = () => {}, // Avoids null checks
+  onSearchChange = () => {},
   menuIcon: MenuIcon = FaBars,
   searchIcon: SearchIcon = FaSearch,
   value = "",
@@ -16,7 +32,7 @@ const SearchBar = ({
   inputGroupClass = "",
   inputClass = "",
   iconClass = "",
-  ...props // Allow additional props
+  ...props
 }) => {
   return (
     <Container fluid className={classNames("p-0", containerClass)} style={{ width }}>
@@ -30,7 +46,7 @@ const SearchBar = ({
         <Form.Control
           type="text"
           placeholder={placeholder}
-          className={classNames("border-0 bg-white", inputClass)}
+          className={classNames("border-0 bg-white custom-search-input", inputClass)}
           style={{ height: "45px" }}
           value={value}
           onChange={(e) => onSearchChange(e.target.value)}
