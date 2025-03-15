@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "react-bootstrap";
-import CountrySearchInput from "./CountrySearchInput";
-import CountryList from "./CountryList";
+import CountrySearchInput from "./CountrySearchInput.js";
+import CountryList from "./CountryList.js";
 
 interface Country {
   name: string;
