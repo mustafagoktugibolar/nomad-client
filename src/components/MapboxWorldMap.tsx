@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import WorldMapTooltip from "./WorldMapTooltip";
+import WorldMapTooltip from "./WorldMapTooltip.js";
 
 interface PopupInfo {
   name: string;

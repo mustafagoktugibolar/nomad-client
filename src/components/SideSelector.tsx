@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Card, Button } from "react-bootstrap";
-import CountrySelector from "./CountrySelector";
-import PassportSelector from "./PassportSelector";
-import SearchBar from "./SearchBar";
-import StepNavigation from "./StepNavigation";
+import CountrySelector from "./CountrySelector.js";
+import PassportSelector from "./PassportSelector.js";
+import SearchBar from "./SearchBar.js";
+import StepNavigation from "./StepNavigation.js";
 
 type StepType = "country" | "passport";
 
