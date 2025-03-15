@@ -24,7 +24,6 @@ const MapboxWorldMap: React.FC = () => {
   useEffect(() => {
     // Set the Mapbox access token from the environment variable
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string;
-
     if (!mapRef.current) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current!, // non-null assertion because we expect it to exist
