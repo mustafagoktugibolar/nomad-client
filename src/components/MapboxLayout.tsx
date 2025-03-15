@@ -1,6 +1,6 @@
 import React from "react";
-import MapboxWorldMap from "./MapboxWorldMap";
-import SideSelector from "./SideSelector";
+import MapboxWorldMap from "./MapboxWorldMap.js";
+import SideSelector from "./SideSelector.js";
 
 const MapboxLayout: React.FC = () => {
   return (
