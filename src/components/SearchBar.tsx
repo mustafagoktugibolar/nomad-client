@@ -1,65 +1,42 @@
-import React from "react";
-import { Form, InputGroup, Container } from "react-bootstrap";
-import { FaBars, FaSearch } from "react-icons/fa";
-import classNames from "classnames";
+import * as React from "react";
+import { Input } from "../components/ui/input.js";
+import { Button } from "../components/ui/button.js";
+import { IoMdMenu } from "react-icons/io";
 
-interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+interface SearchBarProps {
   width?: string;
-  placeholder?: string;
-  onSearchChange?: (value: string) => void;
-  menuIcon?: React.ComponentType<any>;
-  searchIcon?: React.ComponentType<any>;
-  value?: string;
-  showMenuIcon?: boolean;
-  showSearchIcon?: boolean;
-  containerClass?: string;
   inputGroupClass?: string;
-  inputClass?: string;
-  iconClass?: string;
+  showMenuIcon?: boolean;
+  searchValue: string;
+  placeholder?: string;
+  onSearchChange: (value: string) => void;
+  onMenuClick?: () => void;
 }
 
-
 const SearchBar: React.FC<SearchBarProps> = ({
-  width = "100%",
-  placeholder = "Search...",
-  onSearchChange = () => {},
-  menuIcon: MenuIcon = FaBars,
-  searchIcon: SearchIcon = FaSearch,
-  value = "",
-  showMenuIcon = false,
-  showSearchIcon = false,
-  containerClass = "",
-  inputGroupClass = "",
-  inputClass = "",
-  iconClass = "",
-  ...props
+  width,
+  inputGroupClass,
+  showMenuIcon,
+  searchValue,
+  placeholder,
+  onSearchChange,
+  onMenuClick,
 }) => {
   return (
-    <Container fluid className={classNames("p-0", containerClass)} style={{ width }}>
-      <InputGroup className={classNames("shadow-sm rounded", inputGroupClass)}>
-        {showMenuIcon && (
-          <InputGroup.Text className={classNames("bg-white border-0", iconClass)}>
-            <MenuIcon className="text-muted" />
-          </InputGroup.Text>
-        )}
-
-        <Form.Control
-          type="text"
-          placeholder={placeholder}
-          className={classNames("border-0 bg-white custom-search-input", inputClass)}
-          style={{ height: "45px" }}
-          value={value}
-          onChange={(e) => onSearchChange(e.target.value)}
-          {...props}
-        />
-
-        {showSearchIcon && (
-          <InputGroup.Text className={classNames("bg-white border-0", iconClass)}>
-            <SearchIcon className="text-muted" />
-          </InputGroup.Text>
-        )}
-      </InputGroup>
-    </Container>
+    <div className={`flex items-center rounded-lg p-2 bg-white ${inputGroupClass}`} style={{ width }}>
+      {showMenuIcon && (
+        <Button onClick={onMenuClick} className="shadow-none bg-white p-2 flex items-center justify-center w-10 h-10">
+          <IoMdMenu className="w-6 h-6 text-black" />
+        </Button>
+      )}
+      <Input
+        type="text"
+        value={searchValue}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full border-0 hover:none focus:none outline-none shadow-none"
+      />
+    </div>
   );
 };
 

@@ -129,12 +129,7 @@ const MapboxWorldMap: React.FC = () => {
   return (
     <div
       ref={mapContainerRef}
-      style={{
-        width: "100vw",
-        height: "100vh",
-        position: "relative",
-        visibility: mapLoaded ? "visible" : "hidden",
-      }}
+      className={`w-screen h-screen relative ${mapLoaded ? "visible" : "invisible"}`}
     >
       <WorldMapTooltip popupInfo={popupInfo} />
     </div>
