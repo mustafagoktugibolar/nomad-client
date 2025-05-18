@@ -13,6 +13,7 @@ interface FilterPopoverButtonProps {
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
   className?: string;
+  open?: boolean;
 }
 
 const FilterPopoverButton: React.FC<FilterPopoverButtonProps> = ({
@@ -21,10 +22,11 @@ const FilterPopoverButton: React.FC<FilterPopoverButtonProps> = ({
   isSelected,
   onOpenChange,
   children,
+  open,
   className = "",
 }) => {
   return (
-    <Popover onOpenChange={onOpenChange}>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <div>
           <FilterButton
@@ -39,7 +41,7 @@ const FilterPopoverButton: React.FC<FilterPopoverButtonProps> = ({
       <PopoverContent
         side="top"
         align="center"
-        className="w-64 p-4 bg-white rounded-lg shadow-lg"
+        className="w-64 mb-2 p-4 bg-white rounded-lg shadow-lg"
         sideOffset={8}
       >
         {children}

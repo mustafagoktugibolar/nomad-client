@@ -1,4 +1,3 @@
-// components/FilterButton.tsx
 import React from "react";
 import { Button } from "../components/ui/button.js";
 
@@ -17,16 +16,18 @@ const FilterButton: React.FC<FilterButtonProps> = ({
   onClick,
   className = "",
 }) => {
+  const baseClasses = "flex flex-col items-center px-4 py-6 transition-none";
+  const selectedClasses = "bg-white shadow-sm border border-border";
+  const unselectedClasses = "bg-transparent border-none shadow-none hover:bg-transparent";
+
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       onClick={onClick}
-      className={`flex flex-col items-center px-4 py-2 border-0 ${
-        isSelected ? "bg-white" : "bg-transparent hover:bg-[#E2E4E9]"
-      } ${className}`}
+      className={`${baseClasses} ${isSelected ? selectedClasses : unselectedClasses} ${className}`}
     >
       {icon}
-      <span className="text-xs text-gray-700 mt-1">{label}</span>
+      <span className="text-xs text-gray-700">{label}</span>
     </Button>
   );
 };

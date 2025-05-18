@@ -6,6 +6,7 @@ import { Briefcase, CreditCard, Lock, Cloud } from "lucide-react";
 import { Input } from "../components/ui/input.js";
 import { Label } from "../components/ui/label.js";
 import { Passport } from "./PassportSelector.js";
+import SecurityFilterContent from "./SecurityFilterContent.js";
 
 interface FilterBarProps {
   selectedPassport: Passport | null;     // from PassportSelector
@@ -17,7 +18,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onPassportClick,
 }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-
+  const [openState, setOpenState] = useState<Record<number, boolean>>({});
   const buttons = [
     {
       type: "action",
@@ -46,7 +47,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
       type: "popover",
       icon: <Lock className="w-5 h-5 text-red-500" />,
       label: "Güvenlik",
-      content: <p>Güvenlik tercihleri</p>,
+      content: (
+        <SecurityFilterContent onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
+      ),
     },
     {
       type: "popover",
@@ -57,24 +60,39 @@ const FilterBar: React.FC<FilterBarProps> = ({
   ];
 
   return (
-    <div className="bg-[#F3F4F8] rounded-full shadow-md flex items-center justify-evenly min-h-[80px] px-4 z-50 w-full">
+    <div className="bg-[#F3F4F8] rounded-full shadow-md flex items-center justify-evenly min-h-[80px] px-4 z-50 w-full mb-1">
       {buttons.map((btn, index) =>
         btn.type === "popover" ? (
           <FilterPopoverButton
             key={index}
             icon={btn.icon}
             label={btn.label}
-            isSelected={selectedIndex === index}
-            onOpenChange={(open) => setSelectedIndex(open ? index : null)}
+            isSelected={openState[index] === true}
+            open={openState[index] === true}
+            onOpenChange={(open) =>
+              setOpenState((prev) => ({
+                ...prev,
+                [index]: open,
+              }))
+            }
           >
-            {btn.content}
+            {
+              React.cloneElement(btn.content as React.ReactElement, {
+                onClose: () =>
+                  setOpenState((prev) => ({
+                    ...prev,
+                    [index]: false,
+                  })),
+              })
+            }
           </FilterPopoverButton>
+
         ) : (
           <FilterButton
             key={index}
             icon={btn.icon}
             label={btn.label}
-            isSelected={selectedIndex === index}
+            isSelected={openState[index] === true}
             onClick={() => {
               setSelectedIndex(index);
               btn.onClick?.();
