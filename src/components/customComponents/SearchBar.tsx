@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Input } from "../components/ui/input.js";
-import { Button } from "../components/ui/button.js";
+import { Input } from "../ui/input.js";
+import { Button } from "../ui/button.js";
 import { IoMdMenu } from "react-icons/io";
 
 interface SearchBarProps {

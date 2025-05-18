@@ -1,12 +1,15 @@
 // FilterBar.tsx
 import React, { useState } from "react";
-import FilterButton from "./FilterButton.js";
-import FilterPopoverButton from "./FilterPopoverButton.js";
+import FilterButton from "./customComponents/FilterButton.js";
+import FilterPopoverButton from "./customComponents/FilterPopoverButton.js";
 import { Briefcase, CreditCard, Lock, Cloud } from "lucide-react";
 import { Input } from "../components/ui/input.js";
 import { Label } from "../components/ui/label.js";
 import { Passport } from "./PassportSelector.js";
-import SecurityFilterContent from "./SecurityFilterContent.js";
+import SecurityFilterContent from "./popups/SecurityFilterContent.js";
+import SeasonSelectorPopup from "./popups/SeasonSelectorPopup.js";
+import BudgetSelectorPopup from "./popups/BudgetSelectorPopup.js";
+import TravelReasonSelectorPopup from "./popups/TravelReasonPopup.js";
 
 interface FilterBarProps {
   selectedPassport: Passport | null;     // from PassportSelector
@@ -30,18 +33,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
       type: "popover",
       icon: <Briefcase className="w-5 h-5 text-blue-600" />,
       label: "Seyahat Nedeni",
-      content: (
-        <div>
-          <Label>Seyahat Nedeni</Label>
-          <Input placeholder="İş, Tatil..." />
-        </div>
-      ),
+      content: <TravelReasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
     },
     {
       type: "popover",
       icon: <CreditCard className="w-5 h-5 text-cyan-700" />,
       label: "Bütçe",
-      content: <Input placeholder="₺0 - ₺10000" />,
+      content: <BudgetSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
     },
     {
       type: "popover",
@@ -55,7 +53,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
       type: "popover",
       icon: <Cloud className="w-5 h-5 text-gray-600" />,
       label: "Mevsimler",
-      content: <p>Mevsim tercihleri</p>,
+      content: (
+        <SeasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
+      ),    
     },
   ];
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import PassportGrid from "./PassportGrid.js";
+import PassportGrid from "./customComponents/PassportGrid.js";
 
 export interface Passport {
   country: string;

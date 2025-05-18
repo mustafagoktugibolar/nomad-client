@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import CountrySearchInput from "./CountrySearchInput.js";
-import CountryList from "./CountryList.js";
+import CountryList from "../CountryList.js";
 
 interface Country {
   name: string;

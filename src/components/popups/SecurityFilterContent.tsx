@@ -1,5 +1,5 @@
-import { useFilterStore } from "../components/store/filterStore.js";
-import { Checkbox } from "../components/ui/checkbox.js";
+import { useFilterStore } from "../store/filterStore.js";
+import { Checkbox } from "../ui/checkbox.js";
 import { X } from "lucide-react";
 import React from "react";
 

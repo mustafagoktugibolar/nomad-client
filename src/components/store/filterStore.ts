@@ -7,30 +7,36 @@ type SecurityLevel =
   | "Riskli"
   | "Seyahat Edilmemeli";
 
+type SeasonLevel = 
+    | "İlkbahar"
+    | "Yaz"
+    | "Sonbahar"
+    | "Kış";
 interface FilterState {
   passport: string | null;
-  reason: string;
-  budget: string;
+  reason: string | null;
+  budget: number;
   security: SecurityLevel[];
-  season: string;
+  season: SeasonLevel[];
 
   setPassport: (passport: string) => void;
   setReason: (reason: string) => void;
-  setBudget: (budget: string) => void;
+  setBudget: (budget: number) => void;
   setSecurity: (levels: SecurityLevel[]) => void;
-  setSeason: (season: string) => void;
+  setSeason: (season: SeasonLevel[]) => void;
 }
+
 
 export const useFilterStore = create<FilterState>((set) => ({
   passport: null,
-  reason: "",
-  budget: "",
+  reason: null ,
+  budget: 2000,
   security: [],
-  season: "",
+  season: [],
 
   setPassport: (passport) => set({ passport }),
   setReason: (reason) => set({ reason }),
   setBudget: (budget) => set({ budget }),
   setSecurity: (levels) => set({ security: levels }),
-  setSeason: (season) => set({ season }),
+  setSeason: (seasons) => set({ season: seasons }),
 }));

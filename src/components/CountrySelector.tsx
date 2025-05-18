@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import CountrySelectionCard from "./CountrySelectionCard.js";
+import CountrySelectionCard from "./customComponents/CountrySelectionCard.js";
 
 interface Country {
   name: string;

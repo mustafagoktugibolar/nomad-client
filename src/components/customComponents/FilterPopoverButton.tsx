@@ -3,7 +3,7 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "../components/ui/popover.js";
+} from "../ui/popover.js";
 import FilterButton from "./FilterButton.js";
 
 interface FilterPopoverButtonProps {
