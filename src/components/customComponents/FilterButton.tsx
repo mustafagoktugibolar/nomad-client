@@ -16,15 +16,20 @@ const FilterButton: React.FC<FilterButtonProps> = ({
   onClick,
   className = "",
 }) => {
-  const baseClasses = "flex flex-col items-center px-4 py-6 transition-none";
+  const defaultBase = "flex flex-col items-center px-4 py-6 transition-none";
   const selectedClasses = "bg-white shadow-sm border border-border";
-  const unselectedClasses = "bg-transparent border-none shadow-none hover:bg-transparent";
+  const unselectedClasses =
+    "bg-transparent border-none shadow-none hover:bg-transparent";
+
+  const effectiveBase = className ? "" : defaultBase;
 
   return (
     <Button
       variant="ghost"
       onClick={onClick}
-      className={`${baseClasses} ${isSelected ? selectedClasses : unselectedClasses} ${className}`}
+      className={`${effectiveBase} ${
+        isSelected ? selectedClasses : unselectedClasses
+      } ${className}`}
     >
       {icon}
       <span className="text-xs text-gray-700">{label}</span>

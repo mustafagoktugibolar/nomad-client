@@ -50,18 +50,19 @@ export const Combobox: React.FC<ComboboxProps> = ({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between rounded-md px-3 py-2 text-sm shadow-sm"
-        >
-          {selectedLabel ?? placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+<Button
+  variant="outline"
+  role="combobox"
+  aria-expanded={open}
+  className="w-full flex items-center rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm shadow-md"
+>
+  <span>{selectedLabel ?? placeholder}</span>
+  <ChevronsUpDown className="ml-auto h-4 w-4 opacity-50" />
+</Button>
+
       </PopoverTrigger>
 
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[250px] p-0">
         <Command>
           <CommandInput placeholder="Ara..." />
           <CommandList>
@@ -70,7 +71,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
               {datas.map((data) => (
                 <CommandItem
                   key={data.value}
-                  value={data.value}
+                  value={data.label}
                   onSelect={() => handleSelect(data.value)}
                 >
                   <Check

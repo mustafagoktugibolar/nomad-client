@@ -3,8 +3,6 @@ import React, { useState } from "react";
 import FilterButton from "./customComponents/FilterButton.js";
 import FilterPopoverButton from "./customComponents/FilterPopoverButton.js";
 import { Briefcase, CreditCard, Lock, Cloud } from "lucide-react";
-import { Input } from "../components/ui/input.js";
-import { Label } from "../components/ui/label.js";
 import { Passport } from "./PassportSelector.js";
 import SecurityFilterContent from "./popups/SecurityFilterContent.js";
 import SeasonSelectorPopup from "./popups/SeasonSelectorPopup.js";
@@ -59,49 +57,50 @@ const FilterBar: React.FC<FilterBarProps> = ({
     },
   ];
 
-  return (
+return (
     <div className="bg-[#F3F4F8] rounded-full shadow-md flex items-center justify-evenly min-h-[80px] px-4 z-50 w-full mb-1">
-      {buttons.map((btn, index) =>
-        btn.type === "popover" ? (
-          <FilterPopoverButton
-            key={index}
-            icon={btn.icon}
-            label={btn.label}
-            isSelected={openState[index] === true}
-            open={openState[index] === true}
-            onOpenChange={(open) =>
-              setOpenState((prev) => ({
-                ...prev,
-                [index]: open,
-              }))
-            }
-          >
-            {
-              React.cloneElement(btn.content as React.ReactElement, {
+      {buttons.map((btn, index) => (
+        <React.Fragment key={index}>
+          {btn.type === "popover" ? (
+            <FilterPopoverButton
+              icon={btn.icon}
+              label={btn.label}
+              isSelected={openState[index] === true}
+              open={openState[index] === true}
+              onOpenChange={(open) =>
+                setOpenState((prev) => ({
+                  ...prev,
+                  [index]: open,
+                }))
+              }
+            >
+              {React.cloneElement(btn.content as React.ReactElement, {
                 onClose: () =>
                   setOpenState((prev) => ({
                     ...prev,
                     [index]: false,
                   })),
-              })
-            }
-          </FilterPopoverButton>
+              })}
+            </FilterPopoverButton>
+          ) : (
+            <FilterButton
+              icon={btn.icon}
+              label={btn.label}
+              isSelected={openState[index] === true}
+              onClick={() => {
+                setSelectedIndex(index);
+                btn.onClick?.();
+              }}
+            />
+          )}
 
-        ) : (
-          <FilterButton
-            key={index}
-            icon={btn.icon}
-            label={btn.label}
-            isSelected={openState[index] === true}
-            onClick={() => {
-              setSelectedIndex(index);
-              btn.onClick?.();
-            }}
-          />
-        )
-      )}
+          {/* Separator (skip after last button) */}
+          {index < buttons.length - 1 && (
+            <div className="h-5 py-4 w-px bg-gray-300 mx-2" />
+          )}
+        </React.Fragment>
+      ))}
     </div>
   );
 };
-
 export default FilterBar;

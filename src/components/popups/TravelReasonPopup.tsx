@@ -39,7 +39,7 @@ const TravelReasonPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       <Combobox
         datas={reasons}
         value={reason ?? ""}
-        placeholder="Bir seyahat nedeni seçin"
+        placeholder="Seyahat Nedeni"
         onChange={(val) => setReason(val)}
       />
     </>
