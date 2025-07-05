@@ -1,9 +1,7 @@
-@tailwind base;
 
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
-@tailwind components;
 @tailwind utilities;
 .hide-scrollbar {
     scrollbar-width: none; /* For Firefox */

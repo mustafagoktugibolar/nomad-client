@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card.js";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card.js";
 import { CheckCircle } from "lucide-react";
 
 interface Passport {

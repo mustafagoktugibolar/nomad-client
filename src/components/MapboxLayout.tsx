@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import MapboxWorldMap, { VisaDatum } from "./MapboxWorldMap.js";
 import SideSelector from "./SideSelector.js";
 import FilterBar from "./FilterBar.js";
-import SearchBar from "./SearchBar.js";
+import SearchBar from "./customComponents/SearchBar.js";
 import { Passport } from "./PassportSelector.js";
 
 const MapboxLayout: React.FC = () => {
