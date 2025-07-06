@@ -23,7 +23,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const buttons = [
     {
       type: "action",
-      icon: <img src="/passport.png" className="w-5 h-5" />,
+      icon: <img src={selectedPassport?.image} className="w-5 h-5" />,
       label: selectedPassport?.country ?? "Bordo Pasaport",
       onClick: onPassportClick,
     },

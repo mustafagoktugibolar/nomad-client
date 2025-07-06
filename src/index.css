@@ -2,3 +2,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) {
+  /* Fix for Safari flexbox issues */
+  .flex {
+    display: -webkit-flex;
+    display: flex;
+  }
+  
+  /* Fix for Safari transform issues */
+  .transform {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Fix for Safari overflow issues */
+  .overflow-hidden {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for Safari button tap highlights */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Fix for Safari input zoom on focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+}

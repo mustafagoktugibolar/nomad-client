@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import PassportGrid from "./customComponents/PassportGrid.js";
+import { safariFetch, safariErrorHandler, safariRetry } from "../lib/safari-polyfills.js";
 
 export interface Passport {
   country: string;
@@ -36,15 +37,24 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
     setLoading(true);
     try {
       const url = "/api/nomad/api/v1/getMapDetail?passport_type=TR_ORDINARY";
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-      const data = await res.json();
+      
+      // Use Safari-specific fetch with retry logic
+      const data = await safariRetry(async () => {
+        const res = await safariFetch(url);
+        console.log("res", res);
+        return res.json();
+      }, 3, 1000);
+      
       console.log("Fetched data:", data);
       // pass both passport and fetched data up
       onSubmit(selectedPassport, data);
     } catch (err: any) {
-      console.error(err);
-      setError("Bir şeyler ters gitti. Lütfen tekrar deneyin.");
+      safariErrorHandler(err, "PassportSelector");
+      if (err.name === 'AbortError') {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError("Bir şeyler ters gitti. Lütfen tekrar deneyin.");
+      }
     } finally {
       setLoading(false);
     }

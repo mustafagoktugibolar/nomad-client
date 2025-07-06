@@ -28,32 +28,34 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
 
   // Map visa_type → fill color
   const getVisaColor = (type: string) => {
-    switch (type) {
+    // Normalize the visa_type string
+    const t = (type || "").toLowerCase().replace(/\s+/g, "").trim();
+    switch (t) {
       case "visa-free":
-      case "visa-free\/30days":
-      case "visa-free\/90days":
+      case "visa-free/30days":
+      case "visa-free/90days":
         return "#1F9566";
-      case "visa required":
+      case "visarequired":
         return "#F01C31";
-      case "visa on arrival":
-      case "eVisa":
-      case "eTA":
+      case "visaonarrival":
+      case "evisa":
+      case "eta":
         return "#FFD964";
       default:
-        return "#1F9566";
+        return "#cccccc"; // Neutral color for unknown types
     }
   };
 
   // 1) Initialize the map & country-layer once
   useEffect(() => {
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string;
     if (mapRef.current) return;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current!,
-      style: "mapbox://styles/mapbox/streets-v12?optimize=true",
+      style: "mapbox://styles/mapbox/streets-v12",
       projection: "mercator",
       doubleClickZoom: false,
+      accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string,
     });
 
     map.on("load", () => {
@@ -155,8 +157,14 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
     goodEntries.forEach(({ code, color }) => {
       matchExpr.push(code, color);
     });
-    matchExpr.push("rgba(0,0,0,0)"); // fallback
+    // Use a neutral color for countries not in visaData
+    matchExpr.push("#cccccc"); // fallback
   
+    // Find the country-label layer to insert below it
+    const style = map.getStyle();
+    const labelLayer = style && style.layers ? style.layers.find(l => l.id.includes("country-label")) : undefined;
+    const beforeId = labelLayer?.id;
+
     // 3) Add your layer
     map.addLayer(
       {
@@ -164,13 +172,16 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
         type: "fill",
         source: "countries",
         "source-layer": "country_boundaries",
+        layout: {
+          visibility: "visible",
+        },
         paint: {
-          // cast to any so TS stops complaining
           "fill-color": (matchExpr as any),
-          "fill-opacity": 0.6,
+          "fill-opacity": 1,
+          "fill-outline-color": "#ffffff", // white borders for clarity
         },
       },
-      "country-layer" // insert above
+      beforeId // Insert below country-label for label visibility
     );
   }, [mapLoaded, visaData]);
   
