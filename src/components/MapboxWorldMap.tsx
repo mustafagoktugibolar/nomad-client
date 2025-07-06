@@ -21,6 +21,7 @@ interface MapboxWorldMapProps {
 const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const lastCountryZoom = useRef<number | null>(null); // Store last double-click zoom
 
   const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null);
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
@@ -128,6 +129,84 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
       });
       map.on("mouseleave", "country-layer", () => {
         map.getCanvas().style.cursor = "";
+      });
+
+      // Double-click handler to zoom to country and hide visa layer
+      map.on("dblclick", "country-layer", (e) => {
+        if (!e.features?.length) return;
+        const feature = e.features[0];
+        const bounds = new mapboxgl.LngLatBounds();
+
+        let coordinates: [number, number][];
+        if (feature.geometry.type === "Polygon") {
+          coordinates = (feature.geometry.coordinates as [number, number][][])[0];
+        } else if (feature.geometry.type === "MultiPolygon") {
+          coordinates = (feature.geometry.coordinates as [number, number][][][])[0][0];
+        } else {
+          return; // Not a polygon, skip
+        }
+
+        coordinates.forEach((coord: [number, number]) => bounds.extend(coord));
+
+        // Zoom to the country
+        map.fitBounds(bounds, { padding: 40, animate: true });
+
+        // Store the zoom level after the animation finishes
+        map.once('moveend', () => {
+          lastCountryZoom.current = map.getZoom();
+        });
+
+        // Hide the visa layer
+        if (map.getLayer("visa-layer")) {
+          map.setLayoutProperty("visa-layer", "visibility", "none");
+        }
+        // Hide the country selection layer
+        if (map.getLayer("country-layer")) {
+          map.setLayoutProperty("country-layer", "visibility", "none");
+        }
+        // Hide the popup
+        setPopupInfo(null);
+        // Clear selection
+        setSelectedCountryId(null);
+        map.setPaintProperty("country-layer", "fill-opacity", 0);
+      });
+
+      // Double-click handler for non-country areas: reset to start position
+      map.on("dblclick", (e) => {
+        // Only trigger if not on a country feature
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: ["country-layer"],
+        });
+        if (!features.length) {
+          // Reset to initial bounds
+          map.fitBounds([[-160, -55], [160, 75]], { padding: 10, animate: true });
+          // Optionally, restore layers if hidden
+          if (map.getLayer("visa-layer")) {
+            map.setLayoutProperty("visa-layer", "visibility", "visible");
+          }
+          if (map.getLayer("country-layer")) {
+            map.setLayoutProperty("country-layer", "visibility", "visible");
+          }
+          setSelectedCountryId(null);
+          setPopupInfo(null);
+          lastCountryZoom.current = null;
+        }
+      });
+
+      // Restore layers on zoom out (based on lastCountryZoom)
+      map.on("zoomend", () => {
+        if (lastCountryZoom.current !== null) {
+          const threshold = lastCountryZoom.current * 0.75;
+          if (map.getZoom() <= threshold) {
+            if (map.getLayer("visa-layer")) {
+              map.setLayoutProperty("visa-layer", "visibility", "visible");
+            }
+            if (map.getLayer("country-layer")) {
+              map.setLayoutProperty("country-layer", "visibility", "visible");
+            }
+            lastCountryZoom.current = null; // Reset so it only triggers once
+          }
+        }
       });
 
       mapRef.current = map;
