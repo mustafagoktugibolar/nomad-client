@@ -13,10 +13,10 @@ interface CountryListProps {
 
 const CountryList: React.FC<CountryListProps> = ({ countries, searchTerm, onSelectCountry }) => {
   return (
-    <div className="flex flex-col bg-gray-100 rounded-lg overflow-hidden">
+    <div className="flex flex-col bg-gray-100 rounded-lg mb-4 mt-1 overflow-hidden">
       {/* Fixed Title Header */}
-      <div className="flex items-center justify-between p-2 bg-gray-100">
-        <div className="text-xs">Ülkeler</div>
+      <div className="flex items-center justify-between py-2 bg-gray-100 border-b border-gray-200">
+        <div className="text-xs font-medium px-2 tracking-wide text-gray-600 uppercase">Countries</div>
       </div>
 
       {/* Scrollable Country List */}
@@ -29,11 +29,11 @@ const CountryList: React.FC<CountryListProps> = ({ countries, searchTerm, onSele
             .map((country, index) => (
               <li
                 key={index}
-                className="flex items-center w-full p-2 cursor-pointer hover:bg-gray-200 transition"
+                className="flex items-center w-full px-2 py-2 cursor-pointer hover:bg-gray-200/70 transition text-sm"
                 onClick={() => onSelectCountry(country.name)}
               >
-                <span className="text-2xl mr-2">{country.flag}</span>
-                <span>{country.name}</span>
+                <span className="text-xl mr-3 leading-none">{country.flag}</span>
+                <span className="leading-tight">{country.name}</span>
               </li>
             ))}
         </ul>

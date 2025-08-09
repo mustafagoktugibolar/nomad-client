@@ -8,14 +8,14 @@ interface CountrySearchInputProps {
 
 const CountrySearchInput: React.FC<CountrySearchInputProps> = ({ searchTerm, setSearchTerm }) => {
   return (
-    <div className="py-2">
-      <h5 className="font-bold text-lg  mb-1">Hangi ülkenin pasaportuna sahipsin?</h5>
+    <div className="pt-4 pl-1 pb-2">{/* adjusted spacing */}
+      <h5 className="font-bold text-xl leading-tight mb-3 tracking-tight">Which country's passport do you have?</h5>
       <SearchBar
         width="100%"
-        inputGroupClass="border-1 rounded-lg text-sm h-12 my-2"
+        inputGroupClass="border rounded-lg text-sm h-11 my-0"
         showMenuIcon={false}
         searchValue={searchTerm}
-        placeholder="Ülke ara veya seç"
+        placeholder="Search or select a country"
         onSearchChange={setSearchTerm}
       />
     </div>

@@ -24,25 +24,25 @@ const FilterBar: React.FC<FilterBarProps> = ({
     {
       type: "action",
       icon: <img src={selectedPassport?.image} className="w-5 h-5" />,
-      label: selectedPassport?.country ?? "Bordo Pasaport",
+      label: selectedPassport?.country ?? "Burgundy Passport",
       onClick: onPassportClick,
     },
     {
       type: "popover",
       icon: <Briefcase className="w-5 h-5 text-blue-600" />,
-      label: "Seyahat Nedeni",
+      label: "Travel Reason",
       content: <TravelReasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
     },
     {
       type: "popover",
       icon: <CreditCard className="w-5 h-5 text-cyan-700" />,
-      label: "Bütçe",
+      label: "Budget",
       content: <BudgetSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
     },
     {
       type: "popover",
       icon: <Lock className="w-5 h-5 text-red-500" />,
-      label: "Güvenlik",
+      label: "Security",
       content: (
         <SecurityFilterContent onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
       ),
@@ -50,7 +50,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
     {
       type: "popover",
       icon: <Cloud className="w-5 h-5 text-gray-600" />,
-      label: "Mevsimler",
+      label: "Seasons",
       content: (
         <SeasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
       ),    

@@ -9,16 +9,16 @@ export type ComboboxData = {
 };
 
 const reasons: ComboboxData[] = [
-  { value: "tourism", label: "Turistik" },
-  { value: "business", label: "Ticari" },
-  { value: "family", label: "Aile Ziyareti" },
-  { value: "education", label: "Eğitim" },
-  { value: "work", label: "Çalışma" },
+  { value: "tourism", label: "Tourism" },
+  { value: "business", label: "Business" },
+  { value: "family", label: "Family Visit" },
+  { value: "education", label: "Education" },
+  { value: "work", label: "Work" },
   { value: "transit", label: "Transit" },
-  { value: "health", label: "Sağlık" },
-  { value: "culture", label: "Kültürel – Sportif" },
-  { value: "official", label: "Resmi Ziyaret" },
-  { value: "settlement", label: "Yerleşim / Aile Birleşimi" },
+  { value: "health", label: "Health" },
+  { value: "culture", label: "Cultural / Sport" },
+  { value: "official", label: "Official" },
+  { value: "settlement", label: "Settlement / Family" },
 ];
 
 const TravelReasonPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -27,7 +27,7 @@ const TravelReasonPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <span className="text-base font-semibold">Seyahat Nedeni</span>
+        <span className="text-base font-semibold">Travel Reason</span>
         <button
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground"
@@ -39,7 +39,7 @@ const TravelReasonPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       <Combobox
         datas={reasons}
         value={reason ?? ""}
-        placeholder="Seyahat Nedeni"
+        placeholder="Travel Reason"
         onChange={(val) => setReason(val)}
       />
     </>

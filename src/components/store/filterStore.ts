@@ -1,17 +1,17 @@
 import { create } from "zustand";
 
-type SecurityLevel =
-  | "Çok Güvenli"
-  | "Genel Olarak Güvenli"
-  | "Dikkatli Olunmalı"
-  | "Riskli"
-  | "Seyahat Edilmemeli";
+export type SecurityLevel =
+  | "Very Safe"
+  | "Generally Safe"
+  | "Use Caution"
+  | "Risky"
+  | "Do Not Travel";
 
-type SeasonLevel = 
-    | "İlkbahar"
-    | "Yaz"
-    | "Sonbahar"
-    | "Kış";
+export type SeasonLevel = 
+    | "Spring"
+    | "Summer"
+    | "Autumn"
+    | "Winter";
 interface FilterState {
   passport: string | null;
   reason: string | null;

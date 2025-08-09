@@ -1,7 +1,8 @@
-       import React, { useState } from "react";
+import React, { useState } from "react";
        import CountrySelector from "./CountrySelector.js";
        import PassportSelector, { Passport } from "./PassportSelector.js";
        import StepNavigation from "./StepNavigation.js";
+       import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "./ui/alert-dialog.js";
        
        type StepType = "country" | "passport";
        
@@ -21,6 +22,7 @@
        }) => {
          const [step, setStep] = useState<StepType>("country");
          const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+         const [showComingSoon, setShowComingSoon] = useState(false);
        
          return (
            <div
@@ -33,7 +35,7 @@
              `}
            >
              <div className="flex flex-col h-full overflow-hidden p-3 pt-4">
-               <StepNavigation step={step} className="mb-2" />
+              <StepNavigation step={step} className="mb-2 px-3" />
        
                <div className="relative flex-1 overflow-hidden -mt-2">
                  <div
@@ -43,10 +45,14 @@
                    `}
                  >
                    {/* Country */}
-                   <div className="w-1/2 pr-2 overflow-hidden">
+                   <div className="w-1/2 pr-2 ml-2 mr-2 overflow-hidden">
                      <CountrySelector
                        searchTerm={searchTerm}
                        onSelectCountry={(c) => {
+                         if (c !== "Turkey") { // Only allow Turkey for now
+                           setShowComingSoon(true);
+                           return;
+                         }
                          setSelectedCountry(c);
                          setStep("passport");
                        }}
@@ -76,9 +82,23 @@
                  </div>
                </div>
              </div>
+             {showComingSoon && (
+               <AlertDialog open={showComingSoon} onOpenChange={(o)=>setShowComingSoon(o)}>
+                 <AlertDialogContent>
+                   <AlertDialogHeader>
+                     <AlertDialogTitle>Coming Soon</AlertDialogTitle>
+                     <AlertDialogDescription>
+                       Only Turkey is supported right now. More countries will be added soon.
+                     </AlertDialogDescription>
+                   </AlertDialogHeader>
+                   <AlertDialogFooter>
+                     <AlertDialogAction onClick={()=>setShowComingSoon(false)}>OK</AlertDialogAction>
+                   </AlertDialogFooter>
+                 </AlertDialogContent>
+               </AlertDialog>
+             )}
            </div>
          );
        };
        
        export default SideSelector;
-       

@@ -20,7 +20,7 @@ const PassportGrid: React.FC<PassportGridProps> = ({
   selectedPassport,
 }) => {
   return (
-    <div className="grid grid-cols-2 gap-2 p-2">
+    <div className="grid grid-cols-2 gap-4  ">{/* reduced gap */}
       {passports.map((passport, idx) => {
         const isSelected = selectedPassport?.country === passport.country;
 
@@ -29,12 +29,12 @@ const PassportGrid: React.FC<PassportGridProps> = ({
             key={idx}
             onClick={() => onSelect(passport)}
             className={`
-              relative cursor-pointer rounded-md border p-2 transition
-              ${
-                isSelected
-                  ? "border-[#2CB386] bg-[#E6F9F2]"
-                  : "border-gray-200 bg-white hover:border-[#2CB386] hover:bg-[#E6F9F2]"
-              }
+              relative cursor-pointer rounded-md border p-3 transition leading-tight
+               ${
+                 isSelected
+                   ? "border-[#2CB386] bg-[#E6F9F2]"
+                   : "border-gray-200 bg-white hover:border-[#2CB386] hover:bg-[#E6F9F2]"
+               }
             `}
           >
             {/* check badge */}
@@ -48,22 +48,22 @@ const PassportGrid: React.FC<PassportGridProps> = ({
             <div className="flex justify-center mb-1">
               <img
                 src={passport.image}
-                alt={`${passport.country} pasaport kapağı`}
-                className="w-12 h-12 object-cover rounded-sm"
+                alt={`${passport.country} passport cover`}
+                className="w-10 h-10 object-cover rounded-sm"
               />
             </div>
 
             {/* title */}
             <CardHeader className="p-0 mb-0.5 text-center">
               <CardTitle className="text-sm font-medium">
-                {passport.country} Pasaport
+                {passport.country} Passport
               </CardTitle>
             </CardHeader>
 
             {/* subtitle */}
             <CardContent className="p-0 text-center">
-              <p className="text-xs text-gray-600">
-                {passport.validity} hakkında ufak bilgi
+              <p className="text-[11px] text-gray-600">
+                {passport.validity} info
               </p>
             </CardContent>
           </Card>

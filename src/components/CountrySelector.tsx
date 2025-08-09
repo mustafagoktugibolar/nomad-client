@@ -282,7 +282,7 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ onSelectCountry, styl
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
-    <div className="w-full max-w-lg mx-auto mt-3 p-2" style={style}>
+    <div className="w-full max-w-lg mx-auto mt-3 p-2 " style={style}>
       {isInitialLoad && (
         <div className="text-xs text-blue-500 text-center mb-2">
           Updating country list...

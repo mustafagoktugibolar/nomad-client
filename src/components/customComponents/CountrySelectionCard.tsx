@@ -19,7 +19,7 @@ const CountrySelectionCard: React.FC<CountrySelectionCardProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   return (
-    <div className="pt-3 h-full border-none flex flex-col pb-[30px] bg-white rounded-lg">
+    <div className="h-full flex flex-col bg-white rounded-lg">
       <CountrySearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <CountryList countries={countries} searchTerm={searchTerm} onSelectCountry={onSelectCountry} />
     </div>

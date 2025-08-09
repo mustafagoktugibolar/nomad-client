@@ -1,10 +1,9 @@
 import { X } from "lucide-react";
 import React from "react";
 import { Checkbox } from "../ui/checkbox.js";
-import { useFilterStore } from "../store/filterStore.js";
+import { useFilterStore, SeasonLevel } from "../store/filterStore.js";
 
-const seasons = ["İlkbahar", "Yaz", "Sonbahar", "Kış"] as const;
-type Season = typeof seasons[number];
+const seasons: SeasonLevel[] = ["Spring", "Summer", "Autumn", "Winter"];
 
 interface Props {
   onClose: () => void;
@@ -13,7 +12,7 @@ interface Props {
 const SeasonSelectorPopup: React.FC<Props> = ({ onClose }) => {
   const { season: selectedSeasons, setSeason } = useFilterStore();
 
-  const toggle = (seasonItem: Season) => {
+  const toggle = (seasonItem: SeasonLevel) => {
     const isSelected = selectedSeasons.includes(seasonItem);
     const newSelection = isSelected
       ? selectedSeasons.filter((s) => s !== seasonItem)
@@ -25,7 +24,7 @@ const SeasonSelectorPopup: React.FC<Props> = ({ onClose }) => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <span className="text-base font-semibold">Mevsim</span>
+        <span className="text-base font-semibold">Season</span>
         <button
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground"

@@ -24,9 +24,9 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
   const [error, setError] = useState<string|null>(null);
 
   const passports: Passport[] = [
-    { country: "Bordo", image: "https://flagcdn.com/w320/tr.png", validity: "10 years" },
-    { country: "Yeşil", image: "https://flagcdn.com/w320/tr.png", validity: "5 years" },
-    { country: "Gri",  image: "https://flagcdn.com/w320/tr.png", validity: "10 years" },
+    { country: "Burgundy", image: "https://flagcdn.com/w320/tr.png", validity: "10 years" },
+    { country: "Green", image: "https://flagcdn.com/w320/tr.png", validity: "5 years" },
+    { country: "Grey",  image: "https://flagcdn.com/w320/tr.png", validity: "10 years" },
   ];
 
   const filtered = passports.filter(p => p.country === selectedCountry);
@@ -61,16 +61,12 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
   };
 
   return (
-    <div className="relative flex flex-col h-full pt-8 pb-24 px-4 bg-white">
-      <h5 className="font-bold text-lg mb-3">
-        {selectedCountry} için pasaport seç
-      </h5>
+    <div className="relative flex flex-col h-full pt-4 pb-20 pr-3 bg-white">
+      <h5 className="font-bold text-xl mb-4 pt-4">Select passport for {selectedCountry}</h5>
 
       {/* any error */}
       {error && (
-        <div className="text-red-600 text-sm mb-2">
-          {error}
-        </div>
+        <div className="text-red-600 text-sm mb-2">{error}</div>
       )}
 
       {/* Grid */}
@@ -83,7 +79,7 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
       </div>
 
       {/* Footer Buttons */}
-      <div className="absolute inset-x-0 bottom-0 border-t bg-white p-4 flex justify-between items-center z-10">
+      <div className="absolute inset-x-0 bottom-0 bg-white py-4 flex justify-between items-center z-10 pr-4">
         <button
           className="px-4 py-2 border border-gray-500 text-gray-500 rounded-lg hover:bg-gray-100 transition disabled:opacity-50"
           onClick={onBack}
@@ -115,7 +111,7 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
               />
             </svg>
           )}
-          <span>{loading ? "Yükleniyor..." : "Submit"}</span>
+          <span>{loading ? "Loading..." : "Submit"}</span>
         </button>
       </div>
     </div>
