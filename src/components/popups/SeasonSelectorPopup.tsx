@@ -3,7 +3,7 @@ import React from "react";
 import { Checkbox } from "../ui/checkbox.js";
 import { useFilterStore } from "../store/filterStore.js";
 
-const seasons = ["İlkbahar", "Yaz", "Sonbahar", "Kış"] as const;
+const seasons = ["Spring", "Summer", "Autumn", "Winter"] as const;
 type Season = typeof seasons[number];
 
 interface Props {
@@ -25,7 +25,7 @@ const SeasonSelectorPopup: React.FC<Props> = ({ onClose }) => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <span className="text-base font-semibold">Mevsim</span>
+        <span className="text-base font-semibold">Season</span>
         <button
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground"

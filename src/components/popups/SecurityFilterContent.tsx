@@ -4,11 +4,11 @@ import { X } from "lucide-react";
 import React from "react";
 
 const options = [
-  "Çok Güvenli",
-  "Genel Olarak Güvenli",
-  "Dikkatli Olunmalı",
-  "Riskli",
-  "Seyahat Edilmemeli",
+  "Very Safe",
+  "Generally Safe",
+  "Use Caution",
+  "Risky",
+  "Do Not Travel",
 ] as const;
 
 type SecurityLevel = typeof options[number];

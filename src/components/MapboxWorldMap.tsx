@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import WorldMapTooltip from "./WorldMapTooltip.js";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "./ui/alert-dialog.js";
 
 export interface VisaDatum {
   target_country: string;  // ISO 3166-1 alpha-2 code
@@ -26,6 +27,7 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
   const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null);
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   // Map visa_type → fill color
   const getVisaColor = (type: string) => {
@@ -135,38 +137,36 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
       map.on("dblclick", "country-layer", (e) => {
         if (!e.features?.length) return;
         const feature = e.features[0];
+        const props: any = feature.properties;
+        const iso = props.iso_3166_1 as string;
+        if (iso !== "TR") { // only Turkey supported
+          setShowComingSoon(true);
+          return;
+        }
         const bounds = new mapboxgl.LngLatBounds();
 
-        let coordinates: [number, number][];
-        if (feature.geometry.type === "Polygon") {
-          coordinates = (feature.geometry.coordinates as [number, number][][])[0];
-        } else if (feature.geometry.type === "MultiPolygon") {
-          coordinates = (feature.geometry.coordinates as [number, number][][][])[0][0];
-        } else {
-          return; // Not a polygon, skip
+        function addCoords(coords: any) {
+          if (typeof coords[0] === 'number') {
+            bounds.extend(coords as [number, number]);
+          } else {
+            coords.forEach(addCoords);
+          }
         }
+        addCoords((feature as any).geometry.coordinates);
 
-        coordinates.forEach((coord: [number, number]) => bounds.extend(coord));
+        map.fitBounds(bounds, { padding: { top: 40, right: 40, left: 40, bottom: 120 }, animate: true });
 
-        // Zoom to the country
-        map.fitBounds(bounds, { padding: 40, animate: true });
-
-        // Store the zoom level after the animation finishes
         map.once('moveend', () => {
           lastCountryZoom.current = map.getZoom();
         });
 
-        // Hide the visa layer
         if (map.getLayer("visa-layer")) {
           map.setLayoutProperty("visa-layer", "visibility", "none");
         }
-        // Hide the country selection layer
         if (map.getLayer("country-layer")) {
           map.setLayoutProperty("country-layer", "visibility", "none");
         }
-        // Hide the popup
         setPopupInfo(null);
-        // Clear selection
         setSelectedCountryId(null);
         map.setPaintProperty("country-layer", "fill-opacity", 0);
       });
@@ -217,53 +217,54 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || !visaData) return;
     const map = mapRef.current;
-  
-    // Remove old layer if present
+
     if (map.getLayer("visa-layer")) {
       map.removeLayer("visa-layer");
     }
-  
-    // 1) Filter & normalize data
-    const goodEntries = visaData
-      .filter(d => typeof d.target_country === "string" && !!d.target_country)
-      .map(d => ({
-        code: d.target_country.toUpperCase(),
-        color: getVisaColor(d.visa_type),
-      }));
-  
-    // 2) Build the match expression
-    const matchExpr: any[] = ["match", ["get", "iso_3166_1"]];
-    goodEntries.forEach(({ code, color }) => {
-      matchExpr.push(code, color);
+
+    // Deduplicate by code with priority order
+    const priority = ["visa-free", "visa-free/90days", "visa-free/30days", "visa on arrival", "evisa", "eta", "visa-required"];
+    const dedup = new Map<string, string>();
+    visaData.forEach(d => {
+      if (!d.target_country) return;
+      const code = d.target_country.toUpperCase();
+      const current = dedup.get(code);
+      if (!current) {
+        dedup.set(code, d.visa_type);
+      } else {
+        if (priority.indexOf(d.visa_type) < priority.indexOf(current)) {
+          dedup.set(code, d.visa_type);
+        }
+      }
     });
-    // Use a neutral color for countries not in visaData
-    matchExpr.push("#cccccc"); // fallback
-  
-    // Find the country-label layer to insert below it
+
+    const matchExpr: any[] = ["match", ["get", "iso_3166_1"]];
+    dedup.forEach((visa_type, code) => {
+      matchExpr.push(code, getVisaColor(visa_type));
+    });
+    matchExpr.push("#cccccc");
+
     const style = map.getStyle();
     const labelLayer = style && style.layers ? style.layers.find(l => l.id.includes("country-label")) : undefined;
     const beforeId = labelLayer?.id;
 
-    // 3) Add your layer
     map.addLayer(
       {
         id: "visa-layer",
         type: "fill",
         source: "countries",
         "source-layer": "country_boundaries",
-        layout: {
-          visibility: "visible",
-        },
+        layout: { visibility: "visible" },
         paint: {
-          "fill-color": (matchExpr as any),
+          "fill-color": matchExpr as any,
           "fill-opacity": 1,
-          "fill-outline-color": "#ffffff", // white borders for clarity
+          "fill-outline-color": "#ffffff",
         },
       },
-      beforeId // Insert below country-label for label visibility
+      beforeId
     );
   }, [mapLoaded, visaData]);
-  
+
 
   return (
     <div
@@ -273,6 +274,21 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
       }`}
     >
       <WorldMapTooltip popupInfo={popupInfo} />
+      {showComingSoon && (
+        <AlertDialog open={showComingSoon} onOpenChange={setShowComingSoon}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Coming Soon</AlertDialogTitle>
+              <AlertDialogDescription>
+                Data for this country is not available yet. We are working to add more countries soon.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setShowComingSoon(false)}>OK</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 };

@@ -21,7 +21,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({ step, className }) => {
           1
         </span>
         <span className={`text-[0.65rem] ${step === "country" ? "text-black font-medium" : "text-gray-400"}`}>
-          Ülke Seç
+          Select Country
         </span>
       </div>
 
@@ -39,7 +39,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({ step, className }) => {
           2
         </span>
         <span className={`text-[0.65rem] ${step === "passport" ? "text-black font-medium" : "text-gray-400"}`}>
-          Pasaport Seç
+          Select Passport
         </span>
       </div>
     </div>

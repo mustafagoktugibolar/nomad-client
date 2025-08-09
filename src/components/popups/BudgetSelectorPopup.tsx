@@ -15,7 +15,7 @@ const BudgetSelectorPopup: React.FC<Props> = ({ onClose }) => {
     <>
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <span className="text-base font-semibold">Bütçe</span>
+        <span className="text-base font-semibold">Budget</span>
         <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
           <X className="w-5 h-5" />
         </button>
@@ -35,7 +35,7 @@ const BudgetSelectorPopup: React.FC<Props> = ({ onClose }) => {
         className="mt-3 w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition"
         onClick={onClose}
       >
-        Devam
+        Continue
       </button>
     </>
   );
