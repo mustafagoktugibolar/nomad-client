@@ -2,6 +2,15 @@ import React, { useState } from "react";
 import PassportGrid from "./customComponents/PassportGrid.js";
 import { safariFetch, safariErrorHandler, safariRetry } from "../lib/safari-polyfills.js";
 
+// Normalize API base (remove trailing slashes)
+const RAW_API_BASE = '';// removed external base to use nginx proxy
+const API_BASE = '';
+const PASSPORT_TYPE_MAP: Record<string, string> = {
+  Burgundy: 'TR-ORDINARY',
+  Green: 'TR-SPECIAL',
+  Grey: 'TR-SERVICE',
+};
+
 export interface Passport {
   country: string;
   image: string;
@@ -31,29 +40,51 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
 
   const filtered = passports.filter(p => p.country === selectedCountry);
 
+  // Helper to build URL safely whether API_BASE provided or not
+  const buildUrl = (passportType: string) => {
+    const qsType = encodeURIComponent(passportType);
+    return `/nomad/api/v1/getMapDetail?passport_type=${qsType}`;
+  };
+
   const handleSubmit = async () => {
     if (!selectedPassport) return;
     setError(null);
     setLoading(true);
     try {
-      const url = "/api/nomad/api/v1/getMapDetail?passport_type=TR_ORDINARY";
+      const apiType = PASSPORT_TYPE_MAP[selectedPassport.country] || 'TR-ORDINARY';
+      const url = buildUrl(apiType);
+      console.log('[PassportSelector] Fetching:', url);
       
-      // Use Safari-specific fetch with retry logic
       const data = await safariRetry(async () => {
         const res = await safariFetch(url);
-        console.log("res", res);
-        return res.json();
+        const contentType = res.headers.get('content-type') || '';
+        // Read text once so we can give a better error message if JSON parse fails
+        const rawText = await res.text();
+        if (!contentType.includes('application/json')) {
+          // Likely getting index.html (SPA) instead of API JSON -> backend not reachable / missing proxy
+            throw new Error(`Unexpected response type: ${contentType || 'unknown'}; body starts with: ${rawText.slice(0,120)}`);
+        }
+        try {
+          return JSON.parse(rawText);
+        } catch (parseErr: any) {
+          console.warn('Raw response that failed JSON parse:', rawText.slice(0,200));
+          throw new Error(`Failed to parse JSON: ${parseErr.message}`);
+        }
       }, 3, 1000);
       
       console.log("Fetched data:", data);
-      // pass both passport and fetched data up
       onSubmit(selectedPassport, data);
     } catch (err: any) {
       safariErrorHandler(err, "PassportSelector");
+      // Provide clearer user-friendly error, keep original for debugging
       if (err.name === 'AbortError') {
         setError("Request timed out. Please try again.");
+      } else if (/Unexpected response type/.test(err.message)) {
+        setError("API unavailable: received non-JSON response. Check API_BASE or backend server.");
+      } else if (/Failed to parse JSON/.test(err.message)) {
+        setError("Received malformed data from server.");
       } else {
-        setError("Bir şeyler ters gitti. Lütfen tekrar deneyin.");
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);

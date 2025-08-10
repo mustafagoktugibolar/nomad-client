@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import WorldMapTooltip from "./WorldMapTooltip.js";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "./ui/alert-dialog.js";
 
 export interface VisaDatum {
   target_country: string;  // ISO 3166-1 alpha-2 code
@@ -27,7 +26,6 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
   const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null);
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [showComingSoon, setShowComingSoon] = useState(false);
 
   // Map visa_type → fill color
   const getVisaColor = (type: string) => {
@@ -139,10 +137,6 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
         const feature = e.features[0];
         const props: any = feature.properties;
         const iso = props.iso_3166_1 as string;
-        if (iso !== "TR") { // only Turkey supported
-          setShowComingSoon(true);
-          return;
-        }
         const bounds = new mapboxgl.LngLatBounds();
 
         function addCoords(coords: any) {
@@ -274,21 +268,6 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
       }`}
     >
       <WorldMapTooltip popupInfo={popupInfo} />
-      {showComingSoon && (
-        <AlertDialog open={showComingSoon} onOpenChange={setShowComingSoon}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Coming Soon</AlertDialogTitle>
-              <AlertDialogDescription>
-                Data for this country is not available yet. We are working to add more countries soon.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setShowComingSoon(false)}>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
     </div>
   );
 };

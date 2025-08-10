@@ -4,6 +4,9 @@ import MapboxLayout from "./components/MapboxLayout.js";
 import { isSafari } from "./lib/safari-polyfills.js";
 
 
+const API_BASE = '';// use relative proxy
+const DEFAULT_PASSPORT_TYPE = 'TR-ORDINARY'; // updated to hyphen format
+
 function App() {
   useEffect(() => {
     // Safari-specific initialization
@@ -16,8 +19,8 @@ function App() {
       meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
       document.head.appendChild(meta);
     }
-    // Fetch map data at application start
-    fetch('/api/nomad/api/v1/getMapDetail?passport_type=TR_ORDINARY')
+    // Initial (optional) preload
+    fetch(`/nomad/api/v1/getMapDetail?passport_type=${DEFAULT_PASSPORT_TYPE}`)
       .then(res => res.json())
       .then(data => {
         console.log('Map data at app start:', data);
