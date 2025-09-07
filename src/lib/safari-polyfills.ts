@@ -90,7 +90,7 @@ export const safariRetry = async <T>(
 };
 
 // Utility function to sort countries with Turkey first
-export const sortCountriesWithTurkeyFirst = (countries: { name: string; flag: string }[]) => {
+export const sortCountriesWithTurkeyFirst = (countries: { name: string; flag: string; iso: string }[]) => {
   return countries.sort((a, b) => {
     if (a.name === "Turkey") return -1;
     if (b.name === "Turkey") return 1;
@@ -99,8 +99,8 @@ export const sortCountriesWithTurkeyFirst = (countries: { name: string; flag: st
 };
 
 // Utility function to remove duplicate countries
-export const removeDuplicateCountries = (countries: { name: string; flag: string }[]) => {
-  return countries.reduce((acc: { name: string; flag: string }[], country) => {
+export const removeDuplicateCountries = (countries: { name: string; flag: string; iso: string }[]) => {
+  return countries.reduce((acc: { name: string; flag: string; iso: string }[], country) => {
     if (!acc.find(c => c.name === country.name)) {
       acc.push(country);
     }
