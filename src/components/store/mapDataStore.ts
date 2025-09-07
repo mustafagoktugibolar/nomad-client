@@ -44,8 +44,6 @@ export const useMapDataStore = create<MapDataState>((set) => ({
         isLoading: false,
         error: null 
       });
-      
-      console.log('Map data fetched successfully:', data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch map data';
       
