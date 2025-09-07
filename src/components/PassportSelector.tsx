@@ -41,11 +41,9 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
       // Use Safari-specific fetch with retry logic
       const data = await safariRetry(async () => {
         const res = await safariFetch(url);
-        console.log("res", res);
         return res.json();
       }, 3, 1000);
-      
-      console.log("Fetched data:", data);
+    
       // pass both passport and fetched data up
       onSubmit(selectedPassport, data);
     } catch (err: any) {
