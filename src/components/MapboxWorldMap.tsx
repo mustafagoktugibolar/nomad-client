@@ -336,40 +336,29 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
     const filteredCountriesArray = Array.from(filteredCountries);
     const filterExpr = ["in", ["get", "iso_3166_1"], ["literal", filteredCountriesArray]];
 
-    // Add striped pattern for non-matching countries
+    // Add striped pattern for non-matching countries with improved design
     if (!map.hasImage("stripe-pattern")) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
-      canvas.width = 20;
-      canvas.height = 20;
+      canvas.width = 16;
+      canvas.height = 16;
       
-      // Transparent background
-      ctx.clearRect(0, 0, 20, 20);
+      // Semi-transparent white background for softer look
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.fillRect(0, 0, 16, 16);
       
-      // Add bright yellow diagonal stripes - highly visible on all colors
-      ctx.strokeStyle = 'rgba(255, 255, 0, 0.9)'; // Bright yellow
-      ctx.lineWidth = 3;
+      // Add refined diagonal stripes - less aggressive than before
+      ctx.strokeStyle = 'rgba(100, 100, 100, 0.8)'; // Darker grey stripes
+      ctx.lineWidth = 2;
       ctx.beginPath();
       // Diagonal lines from top-left to bottom-right
-      for (let i = -20; i <= 40; i += 6) {
+      for (let i = -16; i <= 32; i += 5) {
         ctx.moveTo(i, 0);
-        ctx.lineTo(i + 20, 20);
+        ctx.lineTo(i + 16, 16);
       }
       ctx.stroke();
       
-      // Add black outline to yellow stripes for even more contrast
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let i = -20; i <= 40; i += 6) {
-        ctx.moveTo(i - 1, 0);
-        ctx.lineTo(i + 19, 20);
-        ctx.moveTo(i + 1, 0);
-        ctx.lineTo(i + 21, 20);
-      }
-      ctx.stroke();
-      
-      const imageData = ctx.getImageData(0, 0, 20, 20);
+      const imageData = ctx.getImageData(0, 0, 16, 16);
       map.addImage('stripe-pattern', imageData);
     }
 
@@ -385,10 +374,10 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
         source: "countries",
         "source-layer": "country_boundaries",
         layout: { visibility: "visible" },
-        filter: ["!", filterExpr], // NOT in filtered countries - güvenli olmayanlar çizgili olur
+        filter: ["!", filterExpr], // NOT in filtered countries - criteria'ya uymayan ülkeler taramalı olur
         paint: {
-          "fill-pattern": "stripe-pattern",
-          "fill-opacity": 0.9,
+          "fill-pattern": "stripe-pattern", // Taramalı pattern kullan
+          "fill-opacity": 0.8,
         },
       },
       beforeId

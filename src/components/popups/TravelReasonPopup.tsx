@@ -9,11 +9,11 @@ export type ComboboxData = {
 };
 
 const reasons: ComboboxData[] = [
-  { value: "tourism", label: "Tourism (Visa-free preferred)" },
-  { value: "business", label: "Business (e-Visa/eTA OK)" },
+  { value: "tourism", label: "Tourism" },
+  { value: "business", label: "Business" },
   { value: "family", label: "Family Visit" },
   { value: "education", label: "Education" },
-  { value: "work", label: "Work (Visa required OK)" },
+  { value: "work", label: "Work" },
   { value: "transit", label: "Transit" },
 ];
 

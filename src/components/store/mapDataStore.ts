@@ -13,6 +13,7 @@ interface CountryData {
   spent_amount_daily_avg: string | number | null;
   spent_amount_avg: string | number | null;
   night_life_name: string | null;
+  season_name: string | null; // Season field eklendi
   [key: string]: any; // for any additional fields
 }
 
@@ -52,6 +53,12 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
       const data = await response.json();
       console.log('✅ Map data fetched successfully:', data.length, 'countries');
       
+      // Log first country to see all available fields
+      if (data.length > 0) {
+        console.log('📊 First country data fields:', Object.keys(data[0]));
+        console.log('📊 First country sample:', data[0]);
+      }
+      
       set({ 
         mapData: data, 
         isLoading: false 
@@ -77,6 +84,10 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
     // Log all unique security levels to understand the data
     const uniqueSecurityLevels = [...new Set(mapData.map(country => country.security_level_name).filter(Boolean))];
     console.log('🛡️ Available Security Levels:', uniqueSecurityLevels);
+    
+    // Log all unique season levels to understand the data
+    const uniqueSeasons = [...new Set(mapData.map(country => country.season_name).filter(Boolean))];
+    console.log('🌸 Available Seasons:', uniqueSeasons);
     
     // Log sample budget data
     const budgetSamples = mapData.slice(0, 5).map(c => ({
@@ -130,6 +141,30 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
           : country.spent_amount_avg;
           
         if (avgAmount > filters.budget) {
+          matches = false;
+        }
+      }
+
+      // Season filter - use season_name
+      if (filters.season && filters.season.length > 0) {
+        const seasonMatches = filters.season.some(selectedSeason => {
+          const countrySeasonName = country.season_name?.toLowerCase() || '';
+          const selectedSeasonLower = selectedSeason.toLowerCase();
+          
+          // Map season levels to real data
+          if (selectedSeasonLower === 'spring') {
+            return countrySeasonName.includes('spring') || countrySeasonName.includes('ilkbahar');
+          } else if (selectedSeasonLower === 'summer') {
+            return countrySeasonName.includes('summer') || countrySeasonName.includes('yaz');
+          } else if (selectedSeasonLower === 'autumn') {
+            return countrySeasonName.includes('autumn') || countrySeasonName.includes('sonbahar') || countrySeasonName.includes('fall');
+          } else if (selectedSeasonLower === 'winter') {
+            return countrySeasonName.includes('winter') || countrySeasonName.includes('kış');
+          }
+          return false;
+        });
+        
+        if (!seasonMatches) {
           matches = false;
         }
       }

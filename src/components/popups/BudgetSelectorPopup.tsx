@@ -29,14 +29,6 @@ const BudgetSelectorPopup: React.FC<Props> = ({ onClose }) => {
         max={2000}
         step={10}
       />
-
-      {/* Continue Button */}
-      <button
-        className="mt-3 w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition"
-        onClick={onClose}
-      >
-        Continue
-      </button>
     </>
   );
 };

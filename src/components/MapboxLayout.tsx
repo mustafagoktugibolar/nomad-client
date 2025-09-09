@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MapboxWorldMap, { VisaDatum } from "./MapboxWorldMap.js";
 import SideSelector from "./SideSelector.js";
 import FilterBar from "./FilterBar.js";
 import SearchBar from "./customComponents/SearchBar.js";
 import { Passport } from "./PassportSelector.js";
+import { useFilterStore } from "./store/filterStore.js";
+import { useMapDataStore } from "./store/mapDataStore.js";
 
 const MapboxLayout: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,6 +15,21 @@ const MapboxLayout: React.FC = () => {
 
   // Now accepts both the passport and the fetched visaData
   const [visaData, setVisaData] = useState<VisaDatum[] | null>(null);
+
+  // Get filter store values
+  const { passport, reason, budget, security, season } = useFilterStore();
+  const { applyFilters } = useMapDataStore();
+
+  // Apply filters whenever any filter changes
+  useEffect(() => {
+    applyFilters({
+      passport,
+      reason,
+      budget,
+      security,
+      season
+    });
+  }, [passport, reason, budget, security, season, applyFilters]);
 
   const handlePassportSubmit = (passport: Passport, data: VisaDatum[]) => {
     setSelectedPassport(passport);
