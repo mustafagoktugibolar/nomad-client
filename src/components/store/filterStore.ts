@@ -19,11 +19,12 @@ interface FilterState {
   security: SecurityLevel[];
   season: SeasonLevel[];
 
-  setPassport: (passport: string) => void;
-  setReason: (reason: string) => void;
+  setPassport: (passport: string | null) => void;
+  setReason: (reason: string | null) => void;
   setBudget: (budget: number) => void;
   setSecurity: (levels: SecurityLevel[]) => void;
   setSeason: (season: SeasonLevel[]) => void;
+  resetFilters: () => void;
 }
 
 
@@ -39,4 +40,12 @@ export const useFilterStore = create<FilterState>((set) => ({
   setBudget: (budget) => set({ budget }),
   setSecurity: (levels) => set({ security: levels }),
   setSeason: (seasons) => set({ season: seasons }),
+  
+  resetFilters: () => set({
+    passport: null,
+    reason: null,
+    budget: 2000,
+    security: [],
+    season: []
+  }),
 }));

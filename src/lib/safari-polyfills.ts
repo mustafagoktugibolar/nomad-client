@@ -20,9 +20,9 @@ export const safariFetch = async (url: string, options: RequestInit = {}) => {
     ...options,
   };
 
-  // Add timeout for Safari (reduced for faster loading)
+  // Add timeout for Safari (increased for better reliability)
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // Reduced from 15s to 5s
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // Increased from 5s to 10s
   
   try {
     const response = await fetch(url, {

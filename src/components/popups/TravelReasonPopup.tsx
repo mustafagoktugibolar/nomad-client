@@ -9,16 +9,12 @@ export type ComboboxData = {
 };
 
 const reasons: ComboboxData[] = [
-  { value: "tourism", label: "Tourism" },
-  { value: "business", label: "Business" },
+  { value: "tourism", label: "Tourism (Visa-free preferred)" },
+  { value: "business", label: "Business (e-Visa/eTA OK)" },
   { value: "family", label: "Family Visit" },
   { value: "education", label: "Education" },
-  { value: "work", label: "Work" },
+  { value: "work", label: "Work (Visa required OK)" },
   { value: "transit", label: "Transit" },
-  { value: "health", label: "Health" },
-  { value: "culture", label: "Cultural / Sport" },
-  { value: "official", label: "Official" },
-  { value: "settlement", label: "Settlement / Family" },
 ];
 
 const TravelReasonPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {

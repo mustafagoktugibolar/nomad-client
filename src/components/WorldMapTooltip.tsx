@@ -424,7 +424,15 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <b style={{ color: '#555', fontWeight: 600 }}>Avg Daily Spend:</b>
-              <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>{(countryData as any).spent_amount_daily_avg || 'N/A'}</span>
+              <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>
+                ${(countryData as any).spent_amount_daily_avg || 'N/A'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <b style={{ color: '#555', fontWeight: 600 }}>Avg Weekly Spend:</b>
+              <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>
+                ${(countryData as any).spent_amount_avg || 'N/A'}
+              </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <b style={{ color: '#555', fontWeight: 600 }}>Best Season:</b>

@@ -2,12 +2,14 @@
 import React, { useState } from "react";
 import FilterButton from "./customComponents/FilterButton.js";
 import FilterPopoverButton from "./customComponents/FilterPopoverButton.js";
-import { Briefcase, CreditCard, Lock, Cloud } from "lucide-react";
+import { Briefcase, CreditCard, Lock, Cloud, RotateCcw } from "lucide-react";
 import { Passport } from "./PassportSelector.js";
 import SecurityFilterContent from "./popups/SecurityFilterContent.js";
 import SeasonSelectorPopup from "./popups/SeasonSelectorPopup.js";
 import BudgetSelectorPopup from "./popups/BudgetSelectorPopup.js";
 import TravelReasonSelectorPopup from "./popups/TravelReasonPopup.js";
+import { useFilterStore } from "./store/filterStore.js";
+import { useMapDataStore } from "./store/mapDataStore.js";
 
 interface FilterBarProps {
   selectedPassport: Passport | null;     // from PassportSelector
@@ -20,6 +22,28 @@ const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [openState, setOpenState] = useState<Record<number, boolean>>({});
+
+  // Get filter store functions
+  const { 
+    passport, reason, budget, security, season, resetFilters
+  } = useFilterStore();
+  
+  // Get filtered countries count for reset button visibility
+  const { filteredCountries, clearFilters } = useMapDataStore();
+
+  // Check if any filters are active
+  const hasActiveFilters = 
+    reason !== null || 
+    budget !== 2000 || 
+    security.length > 0 || 
+    season.length > 0;
+
+  // Handle reset filters with popover closing
+  const handleResetFilters = () => {
+    resetFilters();
+    clearFilters();
+    setOpenState({});
+  };
   const buttons = [
     {
       type: "action",
@@ -31,13 +55,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
       type: "popover",
       icon: <Briefcase className="w-5 h-5 text-blue-600" />,
       label: "Travel Reason",
-      content: <TravelReasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
+      content: <TravelReasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 1: false }))} />
     },
     {
       type: "popover",
       icon: <CreditCard className="w-5 h-5 text-cyan-700" />,
       label: "Budget",
-      content: <BudgetSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
+      content: <BudgetSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 2: false }))} />
     },
     {
       type: "popover",
@@ -52,9 +76,16 @@ const FilterBar: React.FC<FilterBarProps> = ({
       icon: <Cloud className="w-5 h-5 text-gray-600" />,
       label: "Seasons",
       content: (
-        <SeasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 3: false }))} />
+        <SeasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 4: false }))} />
       ),    
     },
+    // Reset button - only show when filters are active
+    ...(hasActiveFilters ? [{
+      type: "action" as const,
+      icon: <RotateCcw className="w-5 h-5 text-red-600" />,
+      label: "Reset",
+      onClick: handleResetFilters,
+    }] : [])
   ];
 
 return (

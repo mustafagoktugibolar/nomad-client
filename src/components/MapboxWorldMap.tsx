@@ -3,6 +3,8 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import WorldMapTooltip from "./WorldMapTooltip.js";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "./ui/alert-dialog.js";
+import { useMapDataStore } from "./store/mapDataStore.js";
+import { useFilterStore } from "./store/filterStore.js";
 
 export interface VisaDatum {
   target_country: string;  // ISO 3166-1 alpha-2 code
@@ -28,6 +30,51 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
+
+  // Store hooks
+  const { mapData, filteredCountries, applyFilters } = useMapDataStore();
+  const filterState = useFilterStore();
+
+  // Debug: Log data structure
+  React.useEffect(() => {
+    console.log('🔧 Filter state:', filterState);
+    console.log('🎯 Filtered countries:', filteredCountries.size, Array.from(filteredCountries));
+    
+    if (mapData.length > 0) {
+      console.log('🔍 Map Data Sample:', mapData.slice(0, 2));
+      console.log('🗝️ Available keys:', Object.keys(mapData[0] || {}));
+      
+      // Log detailed info about first few countries to find valid data
+      console.log('🏠 First 3 countries details:');
+      for (let i = 0; i < Math.min(3, mapData.length); i++) {
+        const country = mapData[i]; 
+        console.log(`  Country ${i}:`, {
+          target_country: country.target_country,
+          target_country_name: country.target_country_name,
+          security_level: country.security_level,
+          security_level_name: country.security_level_name,
+          visa_type: country.visa_type,
+          passport_type_name: country.passport_type_name
+        });
+      }
+      
+      console.log('📊 Total Countries:', mapData.length);
+    }
+  }, [mapData, filteredCountries, filterState]);
+
+  // Apply filters when filter state changes
+  React.useEffect(() => {
+    if (mapData.length > 0) {
+      console.log('🔄 Applying filters...');
+      applyFilters({
+        passport: filterState.passport,
+        reason: filterState.reason,
+        budget: filterState.budget,
+        security: filterState.security,
+        season: filterState.season,
+      });
+    }
+  }, [filterState.passport, filterState.reason, filterState.budget, filterState.security, filterState.season, mapData.length, applyFilters]);
 
   // Map visa_type → fill color
   const getVisaColor = (type: string) => {
@@ -264,6 +311,91 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData }) => {
       beforeId
     );
   }, [mapLoaded, visaData]);
+
+  // Filter Layer - Apply striped overlay to non-matching countries
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+    const map = mapRef.current;
+
+    // Remove existing filter layer if exists
+    if (map.getLayer("filter-layer")) {
+      map.removeLayer("filter-layer");
+    }
+
+    // If no filters are active, don't add filter layer
+    if (filteredCountries.size === 0) {
+      console.log('🚫 No filters active, skipping filter layer');
+      return;
+    }
+
+    console.log('🎯 Adding filter layer for', filteredCountries.size, 'countries');
+
+    // Create filter expression for countries that should NOT have the striped overlay
+    // (i.e., countries that match the filter criteria)
+    // Use array format for "in" expression
+    const filteredCountriesArray = Array.from(filteredCountries);
+    const filterExpr = ["in", ["get", "iso_3166_1"], ["literal", filteredCountriesArray]];
+
+    // Add striped pattern for non-matching countries
+    if (!map.hasImage("stripe-pattern")) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      canvas.width = 20;
+      canvas.height = 20;
+      
+      // Transparent background
+      ctx.clearRect(0, 0, 20, 20);
+      
+      // Add bright yellow diagonal stripes - highly visible on all colors
+      ctx.strokeStyle = 'rgba(255, 255, 0, 0.9)'; // Bright yellow
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      // Diagonal lines from top-left to bottom-right
+      for (let i = -20; i <= 40; i += 6) {
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + 20, 20);
+      }
+      ctx.stroke();
+      
+      // Add black outline to yellow stripes for even more contrast
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = -20; i <= 40; i += 6) {
+        ctx.moveTo(i - 1, 0);
+        ctx.lineTo(i + 19, 20);
+        ctx.moveTo(i + 1, 0);
+        ctx.lineTo(i + 21, 20);
+      }
+      ctx.stroke();
+      
+      const imageData = ctx.getImageData(0, 0, 20, 20);
+      map.addImage('stripe-pattern', imageData);
+    }
+
+    // Add the filter layer with striped overlay for non-matching countries
+    const style = map.getStyle();
+    const labelLayer = style && style.layers ? style.layers.find((l: any) => l.id.includes("country-label")) : undefined;
+    const beforeId = labelLayer?.id;
+
+    map.addLayer(
+      {
+        id: "filter-layer",
+        type: "fill",
+        source: "countries",
+        "source-layer": "country_boundaries",
+        layout: { visibility: "visible" },
+        filter: ["!", filterExpr], // NOT in filtered countries - güvenli olmayanlar çizgili olur
+        paint: {
+          "fill-pattern": "stripe-pattern",
+          "fill-opacity": 0.9,
+        },
+      },
+      beforeId
+    );
+
+    console.log('✅ Filter layer added successfully');
+  }, [mapLoaded, filteredCountries]);
 
 
   return (
