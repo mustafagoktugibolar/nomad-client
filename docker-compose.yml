@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  # Frontend - React Vite Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "1907:80"
+    container_name: nomad-client
+    restart: unless-stopped
+    environment:
+      - VITE_MAPBOX_ACCESS_TOKEN=${VITE_MAPBOX_ACCESS_TOKEN}
+      - VITE_API_BASE=${VITE_API_BASE}
+    networks:
+      - nomad-network
+networks:
+  nomad-network:
+    driver: bridge
+
+# volumes:
+#   postgres_data:
