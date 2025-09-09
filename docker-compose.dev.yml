@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # Frontend - Development mode with hot reloading
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "1907:5173"
+    container_name: nomad-client-dev
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - VITE_MAPBOX_ACCESS_TOKEN=${VITE_MAPBOX_ACCESS_TOKEN}
+      - VITE_API_BASE=${VITE_API_BASE}
+    networks:
+      - nomad-dev-network
+
+networks:
+  nomad-dev-network:
+    driver: bridge
