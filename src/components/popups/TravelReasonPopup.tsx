@@ -15,10 +15,6 @@ const reasons: ComboboxData[] = [
   { value: "education", label: "Education" },
   { value: "work", label: "Work" },
   { value: "transit", label: "Transit" },
-  { value: "health", label: "Health" },
-  { value: "culture", label: "Cultural / Sport" },
-  { value: "official", label: "Official" },
-  { value: "settlement", label: "Settlement / Family" },
 ];
 
 const TravelReasonPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {
