@@ -5,6 +5,7 @@ import CountryList from "../CountryList.js";
 interface Country {
   name: string;
   flag: string;
+  iso?: string;
 }
 
 interface CountrySelectionCardProps {

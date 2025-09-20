@@ -312,13 +312,33 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
     if (top < margin) top = margin;
   }
 
-  // Helper for flag emoji from ISO code
+  // Helper for flag emoji from ISO code (fallback)
   function getFlagEmoji(isoCode?: string) {
     if (!isoCode || isoCode.length !== 2) return '🏳️';
     return isoCode
       .toUpperCase()
       .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt(0)));
   }
+
+  // Render ISO-based SVG/PNG flag for Windows support; fallback to emoji
+  const FlagIcon: React.FC<{ iso?: string; name?: string }> = ({ iso, name }) => {
+    const [err, setErr] = React.useState(false);
+    if (!iso || err) {
+      return <span style={{ fontSize: 32, marginRight: 8 }}>{getFlagEmoji(iso)}</span>;
+    }
+    const src = `https://flagcdn.com/h24/${iso.toLowerCase()}.png`;
+    return (
+      <img
+        src={src}
+        alt={`${name || iso} flag`}
+        width={32}
+        height={24}
+        style={{ marginRight: 8, borderRadius: 4, boxShadow: '0 0 0 1px rgba(0,0,0,0.06)' }}
+        loading="lazy"
+        onError={() => setErr(true)}
+      />
+    );
+  };
 
   // Helper for security color
   function getSecurityColor(level: string) {
@@ -351,7 +371,7 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
     return '#9e9e9e';
   }
 
-  const flag = getFlagEmoji((countryData as any)?.target_country);
+  const isoForFlag = (countryData as any)?.target_country as string | undefined;
   const secLevel = (countryData as any)?.security_level_name || '';
   const secColor = getSecurityColor(secLevel);
 
@@ -382,7 +402,7 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
         borderTopLeftRadius: 16,
         borderTopRightRadius: 16,
       }}>
-        <span style={{ fontSize: 32, marginRight: 8 }}>{flag}</span>
+        <FlagIcon iso={isoForFlag} name={popupInfo.name} />
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 18, color: '#222', lineHeight: 1.2 }}>{popupInfo.name}</div>
           {countryData && (
