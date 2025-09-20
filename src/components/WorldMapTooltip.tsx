@@ -36,7 +36,6 @@ function SecurityTooltip({ desc, children }: SecurityTooltipProps) {
   );
 }
 import React from "react";
-import { Card } from "react-bootstrap";
 import { useMapDataStore } from "./store/mapDataStore.js";
 
 interface PopupInfo {
