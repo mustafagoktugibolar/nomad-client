@@ -30,11 +30,10 @@ const PassportGrid: React.FC<PassportGridProps> = ({
             onClick={() => onSelect(passport)}
             className={`
               relative cursor-pointer rounded-md border p-3 transition leading-tight
-               ${
-                 isSelected
-                   ? "border-[#2CB386] bg-[#E6F9F2]"
-                   : "border-gray-200 bg-white hover:border-[#2CB386] hover:bg-[#E6F9F2]"
-               }
+               ${isSelected
+                ? "border-[#2CB386] bg-[#E6F9F2]"
+                : "border-gray-200 bg-white hover:border-[#2CB386] hover:bg-[#E6F9F2]"
+              }
             `}
           >
             {/* check badge */}
@@ -45,11 +44,11 @@ const PassportGrid: React.FC<PassportGridProps> = ({
             )}
 
             {/* passport cover */}
-            <div className="flex justify-center mb-1">
+            <div className="flex justify-center">
               <img
                 src={passport.image}
                 alt={`${passport.country} passport cover`}
-                className="w-10 h-10 object-cover rounded-sm"
+                className="h-18 w-auto"
               />
             </div>
 

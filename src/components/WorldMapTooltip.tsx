@@ -55,7 +55,7 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
 
   if (popupInfo && Array.isArray(mapData)) {
     const searchName = popupInfo.name.toLowerCase();
-    
+
     // Simple country name to ISO mapping
     const nameToIsoMap: { [key: string]: string } = {
       'turkey': 'TR',
@@ -257,11 +257,17 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
 
     // 1. Try to match by ISO code (if available)
     if (popupInfo.isoCode) {
+      console.log('🔍 Searching with ISO code:', popupInfo.isoCode, 'for country:', popupInfo.name);
       countryData = mapData.find((c: any) =>
         c.target_country?.toLowerCase() === popupInfo.isoCode?.toLowerCase()
       );
+      if (countryData) {
+        console.log('✅ Found by ISO code:', countryData);
+      }
+    } else {
+      console.log('⚠️ No ISO code provided for:', popupInfo.name);
     }
-    
+
     // 2. Try to map country name to ISO and then find
     if (!countryData && nameToIsoMap[searchName]) {
       const isoCode = nameToIsoMap[searchName];
@@ -269,14 +275,14 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
         c.target_country?.toLowerCase() === isoCode.toLowerCase()
       );
     }
-    
+
     // 3. Try exact match with Turkish name
     if (!countryData) {
       countryData = mapData.find((c: any) =>
         c.target_country_name?.toLowerCase() === searchName
       );
     }
-    
+
     // 4. Try exact match with English name (if exists)
     if (!countryData) {
       countryData = mapData.find((c: any) =>
@@ -285,10 +291,10 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
     }
     if (!countryData) {
       console.log('❌ Country not found! Searching for:', popupInfo.name);
-      
+
       // Try to find Turkey specifically for debugging
-      const turkeyInData = mapData.find((c: any) => 
-        c.target_country?.toLowerCase().includes('tr') || 
+      const turkeyInData = mapData.find((c: any) =>
+        c.target_country?.toLowerCase().includes('tr') ||
         c.target_country_name?.toLowerCase().includes('turkey') ||
         c.target_country_name?.toLowerCase().includes('türkiye') ||
         c.name_en?.toLowerCase().includes('turkey')
@@ -343,13 +349,13 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
   function getSecurityColor(level: string) {
     if (!level) return '#bbb';
     const l = level.toLowerCase();
-    
+
     // Very safe / High security (Green)
     if (l.includes('high') || l.includes('safe') || l.includes('çok güvenli') || l.includes('güvenli')) return '#4caf50';
-    
+
     // Medium security (Orange/Yellow)
     if (l.includes('medium') || l.includes('moderate') || l.includes('normal') || l.includes('orta')) return '#ff9800';
-    
+
     // Low/Dangerous security (Red)
     if (
       l.includes('low') ||
@@ -362,10 +368,10 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
       l.includes('çok güvensiz') ||
       l.includes('tehlikeli')
     ) return '#f44336';
-    
+
     // Should not go (Dark Red)
     if (l.includes('gidilmemeli')) return '#d32f2f';
-    
+
     // Default gray
     return '#9e9e9e';
   }
@@ -525,7 +531,7 @@ function FirstValueSingleLine({ text = '', limit = 20 }: { text?: string; limit?
   const parts = text.split(/[,؛;]|\n/).map(p => p.trim()).filter(Boolean);
   const first = parts[0] || '';
   const hasMore = parts.length > 1;
-  const clippedFirst = first.length > limit ? first.slice(0, limit - (hasMore ? 3 : 1)) + '…' : first;
+  const clippedFirst = (first.length > limit ? first.slice(0, limit - 3) : first) + (hasMore ? '...' : '');
   const [open, setOpen] = React.useState(false);
   const full = parts.join(', ');
   // decide direction (basic): if window height small below element, show upward
@@ -549,65 +555,43 @@ function FirstValueSingleLine({ text = '', limit = 20 }: { text?: string; limit?
         alignItems: 'center',
         maxWidth: 150,
         whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
         verticalAlign: 'bottom',
         fontWeight: 500,
         cursor: hasMore ? 'pointer' : 'default'
       }}
-      title={hasMore ? full : undefined}
     >
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{clippedFirst}</span>
-      {hasMore && (
-        <span
-          onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
-          style={{
-            marginLeft: 6,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 15,
-            height: 15,
-            borderRadius: '50%',
-            background: '#fff',
-            color: '#1e6bb8',
-            border: '1px solid #1e6bb8',
-            fontSize: 12,
-            fontWeight: 700,
-            lineHeight: '12px',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.12)'
-          }}
-        >+</span>
-      )}
-      {open && hasMore && (
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            [dirUp ? 'bottom' : 'top']: dirUp ? '120%' : '115%',
-            transform: 'translateX(-50%)',
-            background: '#1f2328',
-            color: '#fff',
-            padding: '6px 8px',
-            borderRadius: 8,
-            fontSize: 11,
-            maxWidth: 80,
-            minWidth: 80,
-            boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
-            zIndex: 2147483647,
-            lineHeight: 1.3,
-            whiteSpace: 'normal',
-            textAlign: 'left',
-            wordBreak: 'break-word'
-          } as React.CSSProperties}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {parts.map((p,i)=>(
-              <div key={i} style={{ background: '#2d333b', padding: '2px 4px', borderRadius: 5, fontSize: 11, lineHeight: 1.2 }}>{p}</div>
-            ))}
+      {
+        open && hasMore && (
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              [dirUp ? 'bottom' : 'top']: dirUp ? '120%' : '115%',
+              transform: 'translateX(-50%)',
+              background: '#1f2328',
+              color: '#fff',
+              padding: '8px 12px',
+              borderRadius: 8,
+              fontSize: 12,
+              maxWidth: 240,
+              minWidth: 180,
+              boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
+              zIndex: 2147483647,
+              lineHeight: 1.3,
+              whiteSpace: 'normal',
+              textAlign: 'left',
+              wordBreak: 'break-word'
+            } as React.CSSProperties}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {parts.map((p, i) => (
+                <div key={i} style={{ background: '#2d333b', padding: '2px 4px', borderRadius: 5, fontSize: 11, lineHeight: 1.2 }}>{p}</div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
     </span>
   );
 }

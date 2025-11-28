@@ -44,7 +44,8 @@ const MapboxLayout: React.FC = () => {
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-white">
       {/* 1. Map background */}
-      <MapboxWorldMap visaData={visaData} />
+      {/* 1. Map background */}
+      <MapboxWorldMap visaData={visaData} isSidebarOpen={showSideSelector} />
 
       {/* 2. Search at top */}
       <div className="fixed top-5 left-5 right-5 md:left-10 max-w-[400px] w-full z-50">

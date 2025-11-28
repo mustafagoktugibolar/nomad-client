@@ -11,7 +11,7 @@ export type ComboboxData = {
 const reasons: ComboboxData[] = [
   { value: "tourism", label: "Tourism" },
   { value: "business", label: "Business" },
-  { value: "family", label: "Family Visit" },
+  { value: "family", label: "Family Tour" },
   { value: "education", label: "Education" },
   { value: "work", label: "Work" },
   { value: "transit", label: "Transit" },

@@ -21,12 +21,13 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
 }) => {
   const [selectedPassport, setSelectedPassport] = useState<Passport | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string|null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const passports: Passport[] = [
-    { country: "Burgundy", image: "https://flagcdn.com/w320/tr.png", validity: "10 years" },
-    { country: "Green", image: "https://flagcdn.com/w320/tr.png", validity: "5 years" },
-    { country: "Grey",  image: "https://flagcdn.com/w320/tr.png", validity: "10 years" },
+    { country: "Ordinary Passport (Bordo)", image: "/passports/bordo.png", validity: "10 years" },
+    { country: "Special Passport (Yeşil)", image: "/passports/yesil.png", validity: "5 years" },
+    { country: "Service Passport (Gri)", image: "/passports/gri.png", validity: "5 years" },
+    { country: "Diplomatic Passport (Siyah)", image: "/passports/siyah.png", validity: "5 years" },
   ];
 
   const filtered = passports.filter(p => p.country === selectedCountry);
@@ -36,14 +37,15 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
     setError(null);
     setLoading(true);
     try {
-      const url = "/api/nomad/api/v1/getMapDetail?passport_type=TR_ORDINARY";
-      
+      const apiBase = import.meta.env.VITE_API_BASE || '';
+      const url = `${apiBase}/api/nomad/api/v1/getMapDetail?passport_type=TR_ORDINARY`;
+
       // Use Safari-specific fetch with retry logic
       const data = await safariRetry(async () => {
         const res = await safariFetch(url);
         return res.json();
       }, 3, 1000);
-    
+
       // pass both passport and fetched data up
       onSubmit(selectedPassport, data);
     } catch (err: any) {
@@ -51,7 +53,7 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
       if (err.name === 'AbortError') {
         setError("Request timed out. Please try again.");
       } else {
-        setError("Bir şeyler ters gitti. Lütfen tekrar deneyin.");
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);

@@ -38,39 +38,117 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
   filteredCountries: new Set<string>(),
   isLoading: false,
   error: null,
-  
+
   fetchMapData: async () => {
     set({ isLoading: true, error: null });
-    
+
     try {
       // API endpoint'i doğru
-      const response = await fetch('/api/nomad/api/v1/getMapDetail');
-      
+      const apiBase = import.meta.env.VITE_API_BASE || '';
+      const response = await fetch(`${apiBase}/api/nomad/api/v1/getMapDetail`);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Map data fetched successfully:', data.length, 'countries');
-      
+
       // Log first country to see all available fields
       if (data.length > 0) {
         console.log('📊 First country data fields:', Object.keys(data[0]));
         console.log('📊 First country sample:', data[0]);
       }
-      
-      set({ 
-        mapData: data, 
-        isLoading: false 
+
+      // Add dummy data for missing countries
+      const missingCountries = [
+        {
+          target_country: 'IN',
+          target_country_name: 'India',
+          security_level: 2,
+          security_level_name: 'normal', // Match API format exactly
+          security_level_desc: 'Generally safe for travelers with normal precautions',
+          capital: 'New Delhi',
+          biggest_city: 'Mumbai',
+          spent_amount_daily_avg: 50,
+          spent_amount_avg: 350,
+          night_life_name: 'Vibrant',
+          season_name: 'Yaz', // Summer in Turkish to match API
+          visit_type_name: 'Kültürel', // Cultural in Turkish
+          visa_type: 'evisa',
+          passport_type_name: 'Turkish Ordinary Passport'
+        },
+        {
+          target_country: 'CL',
+          target_country_name: 'Chile',
+          security_level: 2,
+          security_level_name: 'normal', // Match API format exactly
+          security_level_desc: 'Generally safe for travelers',
+          capital: 'Santiago',
+          biggest_city: 'Santiago',
+          spent_amount_daily_avg: 50,
+          spent_amount_avg: 350,
+          night_life_name: 'normal',
+          season_name: 'Yaz', // Summer in Turkish to match API
+          visit_type_name: 'Kültürel', // Cultural in Turkish
+          visa_type: 'visa-free',
+          passport_type_name: 'Turkish Ordinary Passport'
+        },
+        {
+          target_country: 'GL',
+          target_country_name: 'Greenland',
+          security_level: 1,
+          security_level_name: 'normal', // Match API format
+          security_level_desc: 'Very safe destination',
+          capital: 'Nuuk',
+          biggest_city: 'Nuuk',
+          spent_amount_daily_avg: 200,
+          spent_amount_avg: 1400,
+          night_life_name: 'Limited',
+          season_name: 'Yaz', // Summer in Turkish
+          visit_type_name: 'Kültürel',
+          visa_type: 'visa-free',
+          passport_type_name: 'Turkish Ordinary Passport'
+        },
+        {
+          target_country: 'XK',
+          target_country_name: 'Kosovo',
+          security_level: 2,
+          security_level_name: 'normal', // Match API format
+          security_level_desc: 'Generally safe with normal precautions',
+          capital: 'Pristina',
+          biggest_city: 'Pristina',
+          spent_amount_daily_avg: 40,
+          spent_amount_avg: 280,
+          night_life_name: 'Moderate',
+          season_name: 'Yaz', // Summer in Turkish
+          visit_type_name: 'Kültürel',
+          visa_type: 'visa-free',
+          passport_type_name: 'Turkish Ordinary Passport'
+        }
+      ];
+
+      // Check which countries are missing and add them
+      const existingCountryCodes = new Set(data.map((c: any) => c.target_country));
+      const dataToAdd = missingCountries.filter(c => !existingCountryCodes.has(c.target_country));
+
+      if (dataToAdd.length > 0) {
+        console.log('➕ Adding dummy data for missing countries:', dataToAdd.map(c => c.target_country_name));
+        data.push(...dataToAdd);
+      }
+
+      set({
+        mapData: data,
+        isLoading: false
       });
-      
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      set({ 
-        isLoading: false, 
-        error: errorMessage 
+      set({
+        isLoading: false,
+        error: errorMessage
       });
-      
+
       console.error('Error fetching map data:', error);
     }
   },
@@ -84,11 +162,11 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
     // Log all unique security levels to understand the data
     const uniqueSecurityLevels = [...new Set(mapData.map(country => country.security_level_name).filter(Boolean))];
     console.log('🛡️ Available Security Levels:', uniqueSecurityLevels);
-    
+
     // Log all unique season levels to understand the data
     const uniqueSeasons = [...new Set(mapData.map(country => country.season_name).filter(Boolean))];
     console.log('🌸 Available Seasons:', uniqueSeasons);
-    
+
     // Log sample budget data
     const budgetSamples = mapData.slice(0, 5).map(c => ({
       country: c.target_country_name,
@@ -101,7 +179,7 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
     mapData.forEach((country) => {
       // Skip null/empty entries
       if (!country.target_country) return;
-      
+
       let matches = true;
 
       // Security filter - use security_level_name  
@@ -109,61 +187,63 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
         const securityMatches = filters.security.some(level => {
           const securityName = country.security_level_name?.toLowerCase() || '';
           const levelLower = level.toLowerCase();
-          
+
           // Map security levels to real data (handle Unicode chars)
           if (levelLower.includes('very safe') || levelLower.includes('çok güvenli')) {
             return securityName.includes('çok gü') || securityName === 'Ã§ok gÃ¼venli';
           } else if (levelLower.includes('generally safe') || levelLower.includes('güvenli')) {
-            return (securityName.includes('güvenli') || securityName.includes('gÃ¼venli')) && 
-                   !securityName.includes('çok') && !securityName.includes('Ã§ok');
+            return (securityName.includes('güvenli') || securityName.includes('gÃ¼venli')) &&
+              !securityName.includes('çok') && !securityName.includes('Ã§ok');
           } else if (levelLower.includes('use caution') || levelLower.includes('normal')) {
             return securityName.includes('normal');
           } else if (levelLower.includes('risky') || levelLower.includes('güvensiz')) {
             return securityName.includes('güvensiz') || securityName.includes('gÃ¼vensiz');
           } else if (levelLower.includes('do not travel') || levelLower.includes('tehlikeli')) {
-            return securityName.includes('tehlikeli') || 
-                   securityName.includes('gidilmemeli') || 
-                   securityName.includes('savaş halinde') ||
-                   securityName.includes('savaÅŸ halinde');
+            return securityName.includes('tehlikeli') ||
+              securityName.includes('gidilmemeli') ||
+              securityName.includes('savaş halinde') ||
+              securityName.includes('savaÅŸ halinde');
           }
           return false;
         });
-        
+
         if (!securityMatches) {
           matches = false;
         }
       }
 
       // Budget filter - use spent_amount_avg (total weekly amount)
-      if (filters.budget && country.spent_amount_avg !== null) {
-        const avgAmount = typeof country.spent_amount_avg === 'string' 
-          ? parseFloat(country.spent_amount_avg) 
+      // Skip filter if budget is at maximum (1200)
+      if (filters.budget && filters.budget < 1200 && country.spent_amount_avg !== null) {
+        const avgAmount = typeof country.spent_amount_avg === 'string'
+          ? parseFloat(country.spent_amount_avg)
           : country.spent_amount_avg;
-          
+
         if (avgAmount > filters.budget) {
           matches = false;
         }
       }
 
       // Season filter - use season_name
-      if (filters.season && filters.season.length > 0) {
+      // If no seasons selected OR all 4 seasons selected, don't filter
+      if (filters.season && filters.season.length > 0 && filters.season.length < 4) {
         const seasonMatches = filters.season.some(selectedSeason => {
           const countrySeasonName = country.season_name?.toLowerCase() || '';
           const selectedSeasonLower = selectedSeason.toLowerCase();
-          
-          // Map season levels to real data
-          if (selectedSeasonLower === 'spring') {
+
+          // Map season names (handle Turkish and English)
+          if (selectedSeasonLower.includes('spring') || selectedSeasonLower.includes('ilkbahar')) {
             return countrySeasonName.includes('spring') || countrySeasonName.includes('ilkbahar');
-          } else if (selectedSeasonLower === 'summer') {
+          } else if (selectedSeasonLower.includes('summer') || selectedSeasonLower.includes('yaz')) {
             return countrySeasonName.includes('summer') || countrySeasonName.includes('yaz');
-          } else if (selectedSeasonLower === 'autumn') {
-            return countrySeasonName.includes('autumn') || countrySeasonName.includes('sonbahar') || countrySeasonName.includes('fall');
-          } else if (selectedSeasonLower === 'winter') {
+          } else if (selectedSeasonLower.includes('autumn') || selectedSeasonLower.includes('fall') || selectedSeasonLower.includes('sonbahar')) {
+            return countrySeasonName.includes('autumn') || countrySeasonName.includes('fall') || countrySeasonName.includes('sonbahar');
+          } else if (selectedSeasonLower.includes('winter') || selectedSeasonLower.includes('kış')) {
             return countrySeasonName.includes('winter') || countrySeasonName.includes('kış');
           }
           return false;
         });
-        
+
         if (!seasonMatches) {
           matches = false;
         }
@@ -171,7 +251,7 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
 
       // For now, passport and reason filters are placeholder since we don't have visa data
       // In a real implementation, these would need proper API endpoints
-      
+
       if (matches) {
         filtered.add(country.target_country);
       }

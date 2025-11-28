@@ -7,11 +7,11 @@ export type SecurityLevel =
   | "Risky"
   | "Do Not Travel";
 
-export type SeasonLevel = 
-    | "Spring"
-    | "Summer"
-    | "Autumn"
-    | "Winter";
+export type SeasonLevel =
+  | "Spring"
+  | "Summer"
+  | "Autumn"
+  | "Winter";
 interface FilterState {
   passport: string | null;
   reason: string | null;
@@ -30,8 +30,8 @@ interface FilterState {
 
 export const useFilterStore = create<FilterState>((set) => ({
   passport: null,
-  reason: null ,
-  budget: 2000,
+  reason: null,
+  budget: 1200,
   security: [],
   season: [],
 
@@ -40,11 +40,11 @@ export const useFilterStore = create<FilterState>((set) => ({
   setBudget: (budget) => set({ budget }),
   setSecurity: (levels) => set({ security: levels }),
   setSeason: (seasons) => set({ season: seasons }),
-  
+
   resetFilters: () => set({
     passport: null,
     reason: null,
-    budget: 2000,
+    budget: 1200,
     security: [],
     season: []
   }),

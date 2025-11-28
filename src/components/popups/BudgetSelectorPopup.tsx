@@ -10,6 +10,15 @@ interface Props {
 
 const BudgetSelectorPopup: React.FC<Props> = ({ onClose }) => {
   const { budget, setBudget } = useFilterStore();
+  const [localBudget, setLocalBudget] = React.useState(budget);
+
+  // Sync local state with store when store updates (e.g. reset button)
+  React.useEffect(() => {
+    setLocalBudget(budget);
+  }, [budget]);
+
+  // Discrete budget snap points as requested
+  const budgetSnapPoints = [100, 200, 400, 600, 800, 1000, 1200];
 
   return (
     <>
@@ -23,11 +32,13 @@ const BudgetSelectorPopup: React.FC<Props> = ({ onClose }) => {
 
       {/* Slider */}
       <SingleValueSlider
-        value={budget}
-        onChange={setBudget}
-        min={200}
-        max={2000}
-        step={10}
+        value={localBudget}
+        onChange={setLocalBudget}
+        onCommit={setBudget}
+        min={100}
+        max={1200}
+        step={1}
+        snapPoints={budgetSnapPoints}
       />
     </>
   );

@@ -7,6 +7,8 @@ interface SingleValueSliderProps {
   min?: number;
   max?: number;
   step?: number;
+  snapPoints?: number[]; // Optional discrete values to snap to
+  onCommit?: (value: number) => void;
 }
 
 const SingleValueSlider: React.FC<SingleValueSliderProps> = ({
@@ -15,7 +17,30 @@ const SingleValueSlider: React.FC<SingleValueSliderProps> = ({
   min = 0,
   max = 100,
   step = 1,
+  snapPoints,
+  onCommit,
 }) => {
+  // Find nearest snap point if snapPoints are provided
+  const snapToNearest = (val: number): number => {
+    if (!snapPoints || snapPoints.length === 0) return val;
+
+    return snapPoints.reduce((prev, curr) => {
+      return Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev;
+    });
+  };
+
+  const handleValueChange = ([val]: number[]) => {
+    const snappedValue = snapToNearest(val);
+    onChange(snappedValue);
+  };
+
+  const handleValueCommit = ([val]: number[]) => {
+    if (onCommit) {
+      const snappedValue = snapToNearest(val);
+      onCommit(snappedValue);
+    }
+  };
+
   const percentage = useMemo(() => {
     const clamped = Math.min(Math.max(value, min), max);
     return ((clamped - min) / (max - min)) * 100;
@@ -39,7 +64,8 @@ const SingleValueSlider: React.FC<SingleValueSliderProps> = ({
         max={max}
         step={step}
         value={[value]}
-        onValueChange={([val]) => onChange(val)}
+        onValueChange={handleValueChange}
+        onValueCommit={handleValueCommit}
       />
 
       {/* Min/Max labels */}

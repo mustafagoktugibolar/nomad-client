@@ -34,7 +34,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         value={searchValue}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full border-0 hover:none focus:none outline-none shadow-none"
+        className="w-full border-0 shadow-none focus-visible:ring-0 focus-visible:border-0"
       />
     </div>
   );

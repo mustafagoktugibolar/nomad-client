@@ -32,7 +32,7 @@ const SecurityFilterContent: React.FC<Props> = ({ onClose }) => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <span className="text-base font-semibold">Güvenlik</span>
+        <span className="text-base font-semibold">Security</span>
         <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
           <X className="w-5 h-5" />
         </button>

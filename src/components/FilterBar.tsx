@@ -24,18 +24,18 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const [openState, setOpenState] = useState<Record<number, boolean>>({});
 
   // Get filter store functions
-  const { 
+  const {
     passport, reason, budget, security, season, resetFilters
   } = useFilterStore();
-  
+
   // Get filtered countries count for reset button visibility
   const { filteredCountries, clearFilters } = useMapDataStore();
 
   // Check if any filters are active
-  const hasActiveFilters = 
-    reason !== null || 
-    budget !== 2000 || 
-    security.length > 0 || 
+  const hasActiveFilters =
+    reason !== null ||
+    budget !== 1200 ||
+    security.length > 0 ||
     season.length > 0;
 
   // Handle reset filters with popover closing
@@ -47,7 +47,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const buttons = [
     {
       type: "action",
-      icon: <img src={selectedPassport?.image} className="w-5 h-5" />,
+      icon: <img src={selectedPassport?.image} className="w-10" />,
       label: selectedPassport?.country ?? "Burgundy Passport",
       onClick: onPassportClick,
     },
@@ -77,7 +77,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       label: "Seasons",
       content: (
         <SeasonSelectorPopup onClose={() => setOpenState((prev) => ({ ...prev, 4: false }))} />
-      ),    
+      ),
     },
     // Reset button - only show when filters are active
     ...(hasActiveFilters ? [{
@@ -88,7 +88,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
     }] : [])
   ];
 
-return (
+  return (
     <div className="bg-[#F3F4F8] rounded-full shadow-md flex items-center justify-evenly min-h-[80px] px-4 z-50 w-full mb-1">
       {buttons.map((btn, index) => (
         <React.Fragment key={index}>

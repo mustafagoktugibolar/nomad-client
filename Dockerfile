@@ -19,6 +19,9 @@ RUN npm ci --only=production=false --audit-level high
 # Copy source code with proper ownership
 COPY --chown=nextjs:nodejs . .
 
+# Ensure the app directory is owned by the non-root user
+RUN chown nextjs:nodejs /app
+
 # Switch to non-root user for build
 USER nextjs
 
