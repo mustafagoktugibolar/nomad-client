@@ -89,7 +89,9 @@ const MapboxLayout: React.FC = () => {
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-white">
       <React.Suspense fallback={
-        <div className="w-screen h-screen bg-[#A9D5E8] flex items-center justify-center animate-pulse">
+        <div className="w-screen h-screen bg-[#A9D5E8] flex flex-col items-center justify-center text-white">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
+          <span className="font-medium text-lg tracking-wide">Loading World Map...</span>
         </div>
       }>
         <MapboxWorldMap ref={mapRef} visaData={visaData} isSidebarOpen={showSideSelector} />
