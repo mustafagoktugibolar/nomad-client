@@ -42,6 +42,28 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
   fetchMapData: async () => {
     set({ isLoading: true, error: null });
 
+    const CACHE_KEY = 'nomad_map_data_v3';
+    const CACHE_TIME_KEY = 'nomad_map_data_time_v3';
+    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+    // Check cache
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+      const now = Date.now();
+
+      if (cached && cachedTime && (now - parseInt(cachedTime) < CACHE_DURATION)) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // console.log('Using cached map data');
+          set({ mapData: parsed, isLoading: false });
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Cache parse error', e);
+    }
+
     try {
       // API endpoint'i doğru
       const apiBase = import.meta.env.VITE_API_BASE || '';
@@ -52,13 +74,7 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
       }
 
       const data = await response.json();
-      console.log('✅ Map data fetched successfully:', data.length, 'countries');
-
-      // Log first country to see all available fields
-      if (data.length > 0) {
-        console.log('📊 First country data fields:', Object.keys(data[0]));
-        console.log('📊 First country sample:', data[0]);
-      }
+      console.log('Map data fetched:', data.length, 'countries');
 
       // Add dummy data for missing countries
       const missingCountries = [
@@ -128,17 +144,21 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
         }
       ];
 
-      // Check which countries are missing and add them
-      const existingCountryCodes = new Set(data.map((c: any) => c.target_country));
-      const dataToAdd = missingCountries.filter(c => !existingCountryCodes.has(c.target_country));
+      // Override API data with our hardcoded fallbacks (priority to our data for missing countries)
+      const fallbackCodes = new Set(missingCountries.map(c => c.target_country));
+      // Remove any API data that conflicts with our fallbacks so we don't have duplicates or bad data
+      const cleanData = data.filter((c: any) => !fallbackCodes.has(c.target_country));
+      // Add our comprehensive fallbacks
+      cleanData.push(...missingCountries);
 
-      if (dataToAdd.length > 0) {
-        console.log('➕ Adding dummy data for missing countries:', dataToAdd.map(c => c.target_country_name));
-        data.push(...dataToAdd);
+      if (cleanData.length > 0) {
+        // Cache the processed data (Use v3 key)
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cleanData));
+        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
       }
 
       set({
-        mapData: data,
+        mapData: cleanData,
         isLoading: false
       });
 
@@ -156,25 +176,6 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
   applyFilters: (filters) => {
     const { mapData } = get();
     const filtered = new Set<string>();
-
-    console.log('🔍 Filter Debug: Starting with', filters);
-
-    // Log all unique security levels to understand the data
-    const uniqueSecurityLevels = [...new Set(mapData.map(country => country.security_level_name).filter(Boolean))];
-    console.log('🛡️ Available Security Levels:', uniqueSecurityLevels);
-
-    // Log all unique season levels to understand the data
-    const uniqueSeasons = [...new Set(mapData.map(country => country.season_name).filter(Boolean))];
-    console.log('🌸 Available Seasons:', uniqueSeasons);
-
-    // Log sample budget data
-    const budgetSamples = mapData.slice(0, 5).map(c => ({
-      country: c.target_country_name,
-      dailyBudget: c.spent_amount_daily_avg,
-      weeklyBudget: c.spent_amount_avg,
-      type: typeof c.spent_amount_avg
-    }));
-    console.log('💰 Budget Data Samples:', budgetSamples);
 
     mapData.forEach((country) => {
       // Skip null/empty entries
@@ -256,9 +257,6 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
         filtered.add(country.target_country);
       }
     });
-
-    console.log('🎯 Filter Result:', filtered.size, 'countries match filters');
-    console.log('🗺️ Matching countries:', Array.from(filtered));
 
     set({ filteredCountries: filtered });
   },

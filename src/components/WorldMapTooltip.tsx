@@ -1,3 +1,7 @@
+import React from "react";
+import { Info } from "lucide-react";
+import { useMapDataStore } from "./store/mapDataStore.js";
+
 // Custom tooltip for security level
 type SecurityTooltipProps = {
   desc?: string;
@@ -6,37 +10,69 @@ type SecurityTooltipProps = {
 
 function SecurityTooltip({ desc, children }: SecurityTooltipProps) {
   const [show, setShow] = React.useState(false);
+  const [dirUp, setDirUp] = React.useState(false);
+  const spanRef = React.useRef<HTMLSpanElement>(null);
+
+  React.useEffect(() => {
+    if (show && spanRef.current) {
+      const rect = spanRef.current.getBoundingClientRect();
+      if (rect.bottom + 150 > window.innerHeight) setDirUp(true); else setDirUp(false);
+    }
+  }, [show]);
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (desc) setShow(prev => !prev);
+  };
+
   return (
-    <span style={{ position: 'relative', cursor: desc ? 'pointer' : 'default' }}
+    <span
+      ref={spanRef}
+      style={{ position: 'relative', cursor: desc ? 'pointer' : 'default', display: 'inline-flex', alignItems: 'center', gap: 4 }}
       onMouseEnter={() => desc && setShow(true)}
       onMouseLeave={() => setShow(false)}
+      onClick={toggle}
     >
       {children}
+      {desc && <Info size={14} className="opacity-70 text-current" />}
       {desc && show && (
         <div style={{
           position: 'absolute',
           left: '50%',
-          top: '120%',
+          [dirUp ? 'bottom' : 'top']: '130%',
           transform: 'translateX(-50%)',
-          background: '#222',
+          background: '#1f2937', // Dark gray
           color: '#fff',
-          padding: '7px 12px',
-          borderRadius: 7,
-          fontSize: 13,
+          padding: '8px 12px',
+          borderRadius: 8,
+          fontSize: 12,
           whiteSpace: 'pre-line',
           zIndex: 9999,
-          minWidth: 180,
+          minWidth: 200,
           maxWidth: 260,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.18)'
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          lineHeight: '1.4',
+          textAlign: 'center',
+          pointerEvents: 'none'
         }}>
+          {/* Arrow */}
+          <div style={{
+            position: 'absolute',
+            [dirUp ? 'bottom' : 'top']: -5,
+            left: '50%',
+            transform: 'translateX(-50%)' + (dirUp ? ' rotate(180deg)' : ''),
+            width: 0,
+            height: 0,
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderBottom: '5px solid #1f2937'
+          }} />
           {desc}
         </div>
       )}
     </span>
   );
 }
-import React from "react";
-import { useMapDataStore } from "./store/mapDataStore.js";
 
 interface PopupInfo {
   name: string;
@@ -51,6 +87,14 @@ interface WorldMapTooltipProps {
 
 const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
   const mapData = useMapDataStore((state) => state.mapData);
+  const [isMobile, setIsMobile] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   let countryData = null;
 
   if (popupInfo && Array.isArray(mapData)) {
@@ -257,15 +301,9 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
 
     // 1. Try to match by ISO code (if available)
     if (popupInfo.isoCode) {
-      console.log('🔍 Searching with ISO code:', popupInfo.isoCode, 'for country:', popupInfo.name);
       countryData = mapData.find((c: any) =>
         c.target_country?.toLowerCase() === popupInfo.isoCode?.toLowerCase()
       );
-      if (countryData) {
-        console.log('✅ Found by ISO code:', countryData);
-      }
-    } else {
-      console.log('⚠️ No ISO code provided for:', popupInfo.name);
     }
 
     // 2. Try to map country name to ISO and then find
@@ -289,17 +327,6 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
         c.name_en?.toLowerCase() === searchName
       );
     }
-    if (!countryData) {
-      console.log('❌ Country not found! Searching for:', popupInfo.name);
-
-      // Try to find Turkey specifically for debugging
-      const turkeyInData = mapData.find((c: any) =>
-        c.target_country?.toLowerCase().includes('tr') ||
-        c.target_country_name?.toLowerCase().includes('turkey') ||
-        c.target_country_name?.toLowerCase().includes('türkiye') ||
-        c.name_en?.toLowerCase().includes('turkey')
-      );
-    }
   }
 
   if (!popupInfo) return null;
@@ -310,7 +337,7 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
   const margin = 12;
   let left = popupInfo.lng;
   let top = popupInfo.lat;
-  if (typeof window !== 'undefined') {
+  if (!isMobile && typeof window !== 'undefined') {
     if (left + popupWidth > window.innerWidth - margin) left = window.innerWidth - popupWidth - margin;
     if (left < margin) left = margin;
     if (top + popupHeight > window.innerHeight - margin) top = window.innerHeight - popupHeight - margin;
@@ -380,23 +407,37 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
   const secLevel = (countryData as any)?.security_level_name || '';
   const secColor = getSecurityColor(secLevel);
 
+  const containerStyle: React.CSSProperties = isMobile ? {
+    position: "fixed",
+    bottom: "24px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "92%",
+    maxWidth: "400px",
+    zIndex: 1100,
+    borderRadius: 20,
+    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.3)",
+    background: "#fff",
+    border: "1px solid rgba(0,0,0,0.05)",
+    padding: 0,
+    overflow: 'visible'
+  } : {
+    position: "absolute",
+    left,
+    top,
+    zIndex: 1000,
+    maxWidth: popupWidth,
+    minWidth: 240,
+    borderRadius: 16,
+    boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
+    background: "#fff",
+    border: "1.5px solid #e0e0e0",
+    padding: 0,
+    overflow: 'visible'
+  };
+
   return (
-    <div
-      style={{
-        position: "absolute",
-        left,
-        top,
-        zIndex: 1000,
-        maxWidth: popupWidth,
-        minWidth: 240,
-        borderRadius: 16,
-        boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
-        background: "#fff",
-        border: "1.5px solid #e0e0e0",
-        padding: 0,
-        overflow: 'visible', // allow inner tooltips to overflow
-      }}
-    >
+    <div style={containerStyle}>
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -404,8 +445,8 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
         padding: '18px 18px 8px 18px',
         borderBottom: '1px solid #f0f0f0',
         background: 'linear-gradient(90deg, #f8fafc 60%, #f0f4f8 100%)',
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
+        borderTopLeftRadius: isMobile ? 20 : 16,
+        borderTopRightRadius: isMobile ? 20 : 16,
       }}>
         <FlagIcon iso={isoForFlag} name={popupInfo.name} />
         <div style={{ flex: 1 }}>
@@ -478,16 +519,29 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
 
 function TruncateWithTooltip({ text = '', limit = 28 }: { text?: string; limit?: number }) {
   const [open, setOpen] = React.useState(false);
+  const [dirUp, setDirUp] = React.useState(false);
+  const btnRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    if (open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      if (rect.bottom + 150 > window.innerHeight) setDirUp(true); else setDirUp(false);
+    }
+  }, [open]);
+
   if (!text) return <span>N/A</span>;
   if (text.length <= limit) return <span>{text}</span>;
   const short = text.slice(0, limit).trim() + '…';
+
   return (
     <span style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
       <span>{short}</span>
       <button
+        ref={btnRef}
         type="button"
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
+        onClick={(e) => { e.stopPropagation(); setOpen(prev => !prev); }}
         style={{
           marginLeft: 6,
           background: '#eef2f6',
@@ -505,93 +559,127 @@ function TruncateWithTooltip({ text = '', limit = 28 }: { text?: string; limit?:
           style={{
             position: 'absolute',
             left: '50%',
-            top: '115%',
+            [dirUp ? 'bottom' : 'top']: '130%',
             transform: 'translateX(-50%)',
-            background: '#1f2328',
+            background: '#1f2937',
             color: '#fff',
-            padding: '8px 11px',
+            padding: '8px 12px',
             borderRadius: 8,
             fontSize: 12,
             maxWidth: 240,
             minWidth: 160,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             zIndex: 10000,
-            whiteSpace: 'pre-wrap'
+            whiteSpace: 'pre-wrap',
+            textAlign: 'left',
+            wordBreak: 'break-word',
+            pointerEvents: 'none'
           }}
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
-        >{text}</div>
+        >
+          {/* Arrow */}
+          <div style={{
+            position: 'absolute',
+            [dirUp ? 'bottom' : 'top']: -5,
+            left: '50%',
+            transform: 'translateX(-50%)' + (dirUp ? ' rotate(180deg)' : ''),
+            width: 0,
+            height: 0,
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderBottom: '5px solid #1f2937'
+          }} />
+          {text}
+        </div>
       )}
     </span>
   );
 }
-
 function FirstValueSingleLine({ text = '', limit = 20 }: { text?: string; limit?: number }) {
   if (!text) return <span>N/A</span>;
   const parts = text.split(/[,؛;]|\n/).map(p => p.trim()).filter(Boolean);
   const first = parts[0] || '';
   const hasMore = parts.length > 1;
-  const clippedFirst = (first.length > limit ? first.slice(0, limit - 3) : first) + (hasMore ? '...' : '');
-  const [open, setOpen] = React.useState(false);
-  const full = parts.join(', ');
-  // decide direction (basic): if window height small below element, show upward
-  const [dirUp, setDirUp] = React.useState(false);
+  const clippedFirst = (first.length > limit ? first.slice(0, limit - 3) : first) + (hasMore ? '' : ''); // Don't add dots here as we now show icon? User requested "info icon". 
+  // Actually, keeping dots for text truncation is good, but `hasMore` is indicated by icon.
+  // The original code was adding dots if text was long.
+  // Let's keep text truncation logic but `hasMore` is primarily for the list.
+
+  const [show, setShow] = React.useState(false);
   const spanRef = React.useRef<HTMLSpanElement | null>(null);
+  const [dirUp, setDirUp] = React.useState(false);
+
   React.useEffect(() => {
-    if (spanRef.current) {
+    if (show && spanRef.current) {
       const rect = spanRef.current.getBoundingClientRect();
       if (rect.bottom + 150 > window.innerHeight) setDirUp(true); else setDirUp(false);
     }
-  }, [open]);
+  }, [show]);
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (hasMore) setShow(prev => !prev);
+  }
+
   return (
     <span
       ref={spanRef}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      onClick={() => hasMore && setOpen(o => !o)}
-      style={{
-        position: 'relative',
-        display: 'inline-flex',
-        alignItems: 'center',
-        maxWidth: 150,
-        whiteSpace: 'nowrap',
-        verticalAlign: 'bottom',
-        fontWeight: 500,
-        cursor: hasMore ? 'pointer' : 'default'
-      }}
+      style={{ position: 'relative', cursor: hasMore ? 'pointer' : 'default', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+      onMouseEnter={() => hasMore && setShow(true)}
+      onMouseLeave={() => setShow(false)}
+      onClick={toggle}
     >
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{clippedFirst}</span>
-      {
-        open && hasMore && (
-          <div
-            style={{
-              position: 'absolute',
-              left: '50%',
-              [dirUp ? 'bottom' : 'top']: dirUp ? '120%' : '115%',
-              transform: 'translateX(-50%)',
-              background: '#1f2328',
-              color: '#fff',
-              padding: '8px 12px',
-              borderRadius: 8,
-              fontSize: 12,
-              maxWidth: 240,
-              minWidth: 180,
-              boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
-              zIndex: 2147483647,
-              lineHeight: 1.3,
-              whiteSpace: 'normal',
-              textAlign: 'left',
-              wordBreak: 'break-word'
-            } as React.CSSProperties}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {parts.map((p, i) => (
-                <div key={i} style={{ background: '#2d333b', padding: '2px 4px', borderRadius: 5, fontSize: 11, lineHeight: 1.2 }}>{p}</div>
-              ))}
-            </div>
+      {hasMore && <Info size={14} className="opacity-70 text-current" />}
+
+      {show && hasMore && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            [dirUp ? 'bottom' : 'top']: '130%',
+            transform: 'translateX(-50%)',
+            background: '#1f2937', // Dark gray
+            color: '#fff',
+            padding: '8px 12px',
+            borderRadius: 8,
+            fontSize: 12,
+            minWidth: 160,
+            maxWidth: 240,
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            zIndex: 9999,
+            textAlign: 'left',
+            pointerEvents: 'none'
+          }}
+        >
+          {/* Arrow */}
+          <div style={{
+            position: 'absolute',
+            [dirUp ? 'bottom' : 'top']: -5,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 0,
+            height: 0,
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderBottom: `5px solid #1f2937`,
+            ...(dirUp ? { transform: 'translateX(-50%) rotate(180deg)' } : {})
+          }} />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {parts.map((p, i) => (
+              <div key={i} style={{
+                background: 'rgba(255,255,255,0.1)',
+                padding: '4px 8px',
+                borderRadius: 4,
+                fontSize: 12,
+                lineHeight: 1.3
+              }}>{p}</div>
+            ))}
           </div>
-        )
-      }
+        </div>
+      )}
     </span>
   );
 }

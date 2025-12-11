@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import MapboxWorldMap, { VisaDatum, MapboxWorldMapRef } from "./MapboxWorldMap.js";
+import type { MapboxWorldMapRef, VisaDatum } from "./MapboxWorldMap.js";
 import SideSelector from "./SideSelector.js";
 import FilterBar from "./FilterBar.js";
 import SearchBar from "./customComponents/SearchBar.js";
 import { Passport } from "./PassportSelector.js";
 import { useFilterStore } from "./store/filterStore.js";
 import { useMapDataStore } from "./store/mapDataStore.js";
+
+const MapboxWorldMap = React.lazy(() => import("./MapboxWorldMap.js"));
 
 const MapboxLayout: React.FC = () => {
   const mapRef = useRef<MapboxWorldMapRef>(null);
@@ -86,8 +88,12 @@ const MapboxLayout: React.FC = () => {
 
   return (
     <div className="w-screen h-screen relative overflow-hidden bg-white">
-      {/* 1. Map background */}
-      <MapboxWorldMap ref={mapRef} visaData={visaData} isSidebarOpen={showSideSelector} />
+      <React.Suspense fallback={
+        <div className="w-screen h-screen bg-[#A9D5E8] flex items-center justify-center animate-pulse">
+        </div>
+      }>
+        <MapboxWorldMap ref={mapRef} visaData={visaData} isSidebarOpen={showSideSelector} />
+      </React.Suspense>
 
       {/* 2. Search at top - Mobile optimized */}
       <div className="fixed top-2 left-2 right-2 md:top-5 md:left-10 md:w-full md:max-w-[400px] z-50">

@@ -61,37 +61,12 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
     }
   }));
 
-  // Debug: Log data structure
-  React.useEffect(() => {
-    console.log('🔧 Filter state:', filterState);
-    console.log('🎯 Filtered countries:', filteredCountries.size, Array.from(filteredCountries));
-
-    if (mapData.length > 0) {
-      console.log('🔍 Map Data Sample:', mapData.slice(0, 2));
-      console.log('🗝️ Available keys:', Object.keys(mapData[0] || {}));
-
-      // Log detailed info about first few countries to find valid data
-      console.log('🏠 First 3 countries details:');
-      for (let i = 0; i < Math.min(3, mapData.length); i++) {
-        const country = mapData[i];
-        console.log(`  Country ${i}:`, {
-          target_country: country.target_country,
-          target_country_name: country.target_country_name,
-          security_level: country.security_level,
-          security_level_name: country.security_level_name,
-          visa_type: country.visa_type,
-          passport_type_name: country.passport_type_name
-        });
-      }
-
-      console.log('📊 Total Countries:', mapData.length);
-    }
-  }, [mapData, filteredCountries, filterState]);
+  // Debug logs removed
 
   // Apply filters when filter state changes
   React.useEffect(() => {
     if (mapData.length > 0) {
-      console.log('🔄 Applying filters...');
+      // Applying filters...
       applyFilters({
         passport: filterState.passport,
         reason: filterState.reason,
@@ -288,6 +263,27 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
     });
   }, [selectedCountryId]);
 
+  // Handle window resize with debounce to fit map
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.resize();
+          // Reset view to fit the world
+          mapRef.current.fitBounds([[-160, -55], [160, 75]], { padding: 10, animate: true });
+        }
+      }, 300);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
   // 2) Whenever visaData arrives, add/replace the visa-layer
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || !visaData) return;
@@ -306,13 +302,8 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
     ];
 
     // Combine API data with dummy data
-    const combinedVisaData = [...visaData];
-    const existingCodes = new Set(visaData.map(d => d.target_country?.toUpperCase()));
-    missingCountries.forEach(country => {
-      if (!existingCodes.has(country.target_country.toUpperCase())) {
-        combinedVisaData.push(country);
-      }
-    });
+    // We append missingCountries unconditionally so our priority logic can select 'evisa' over 'visa-required' if needed
+    const combinedVisaData = [...visaData, ...missingCountries];
 
     // Deduplicate by code with priority order
     const priority = ["visa-free", "visa-free/90days", "visa-free/30days", "visa on arrival", "evisa", "eta", "visa-required"];
@@ -506,7 +497,7 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
       );
     }
 
-    console.log('✅ Filter layer added successfully');
+    // Filter layer added
   }, [mapLoaded, filteredCountries]);
 
 

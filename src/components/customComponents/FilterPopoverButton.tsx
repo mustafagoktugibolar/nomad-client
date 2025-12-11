@@ -26,16 +26,14 @@ const FilterPopoverButton: React.FC<FilterPopoverButtonProps> = ({
   className = "",
 }) => {
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
+    <Popover open={open} onOpenChange={onOpenChange} modal={true}>
       <PopoverTrigger asChild>
-        <div>
-          <FilterButton
-            icon={icon}
-            label={label}
-            isSelected={isSelected}
-            className={className}
-          />
-        </div>
+        <FilterButton
+          icon={icon}
+          label={label}
+          isSelected={isSelected}
+          className={className}
+        />
       </PopoverTrigger>
 
       <PopoverContent
@@ -43,6 +41,7 @@ const FilterPopoverButton: React.FC<FilterPopoverButtonProps> = ({
         align="center"
         className="w-64 mb-2 p-4 bg-white rounded-lg shadow-lg"
         sideOffset={8}
+        collisionPadding={10}
       >
         {children}
       </PopoverContent>

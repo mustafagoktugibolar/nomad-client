@@ -61,9 +61,9 @@ const PassportGrid: React.FC<PassportGridProps> = ({
 
             {/* subtitle */}
             <CardContent className="p-0 text-center">
-              <p className="text-[11px] text-gray-600">
+              {/* <p className="text-[11px] text-gray-600">
                 {passport.validity} info
-              </p>
+              </p> */}
             </CardContent>
           </Card>
         );
