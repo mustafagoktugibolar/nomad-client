@@ -135,6 +135,11 @@ const MapboxLayout: React.FC = () => {
               setShowFilterBar(false);
               setShowSideSelector(true);
             }}
+            onMobileToggle={(isOpen) => {
+              if (isOpen) {
+                mapRef.current?.closeTooltip();
+              }
+            }}
           />
         </div>
       )}

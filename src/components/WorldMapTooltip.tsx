@@ -1,5 +1,5 @@
 import React from "react";
-import { Info } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { useMapDataStore } from "./store/mapDataStore.js";
 
 // Custom tooltip for security level
@@ -83,9 +83,10 @@ interface PopupInfo {
 
 interface WorldMapTooltipProps {
   popupInfo: PopupInfo | null;
+  onClose?: () => void;
 }
 
-const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
+const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo, onClose }) => {
   const mapData = useMapDataStore((state) => state.mapData);
   const [isMobile, setIsMobile] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -409,7 +410,7 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
 
   const containerStyle: React.CSSProperties = isMobile ? {
     position: "fixed",
-    bottom: "24px",
+    bottom: "90px",
     left: "50%",
     transform: "translateX(-50%)",
     width: "92%",
@@ -468,6 +469,30 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo }) => {
             </div>
           )}
         </div>
+        {isMobile && onClose && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(0,0,0,0.05)',
+              border: 'none',
+              cursor: 'pointer',
+              marginLeft: 8,
+              color: '#64748b',
+              flexShrink: 0
+            }}
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
       <div style={{ padding: '12px 18px 16px 18px', fontSize: 15, color: '#333' }}>
         {countryData ? (

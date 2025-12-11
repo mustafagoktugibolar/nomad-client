@@ -27,6 +27,7 @@ interface MapboxWorldMapProps {
 export interface MapboxWorldMapRef {
   flyToCountry: (isoCode: string) => void;
   fitBounds: (bounds: [number, number, number, number]) => void;
+  closeTooltip: () => void;
 }
 
 const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(({ visaData, isSidebarOpen }, ref) => {
@@ -58,6 +59,13 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
         [[bounds[0], bounds[1]], [bounds[2], bounds[3]]],
         { padding: 50, animate: true } // Padding ensures it's not too tight (solving "too zoomed")
       );
+    },
+    closeTooltip: () => {
+      setPopupInfo(null);
+      setSelectedCountryId(null);
+      if (mapRef.current && mapRef.current.getLayer("country-layer")) {
+        mapRef.current.setPaintProperty("country-layer", "fill-opacity", 0);
+      }
     }
   }));
 
@@ -542,7 +550,7 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
       )}
 
       {popupInfo && (
-        <WorldMapTooltip popupInfo={popupInfo} />
+        <WorldMapTooltip popupInfo={popupInfo} onClose={() => setPopupInfo(null)} />
       )}
       {showComingSoon && (
         <AlertDialog open={showComingSoon} onOpenChange={setShowComingSoon}>

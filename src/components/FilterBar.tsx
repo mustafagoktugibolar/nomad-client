@@ -14,11 +14,13 @@ import { useMapDataStore } from "./store/mapDataStore.js";
 interface FilterBarProps {
   selectedPassport: Passport | null;     // from PassportSelector
   onPassportClick: () => void;          // triggers side panel or something else
+  onMobileToggle?: (isOpen: boolean) => void;
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
   selectedPassport,
   onPassportClick,
+  onMobileToggle,
 }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [openState, setOpenState] = useState<Record<number, boolean>>({});
@@ -152,9 +154,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
           {/* Expanded Content (Appears above) */}
           {isMobileExpanded && (
             <div className="absolute bottom-20 left-0 w-full px-4 mb-2 animate-in slide-in-from-bottom-5 fade-in duration-200">
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-4 grid grid-cols-2 gap-3 border border-gray-100">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-4 flex flex-wrap justify-center gap-3 border border-gray-100">
                 {buttons.map((btn, index) => (
-                  <div key={index} className="flex justify-center">
+                  <div key={index} className="flex justify-center w-[48%]">
                     {btn.type === "popover" ? (
                       <FilterPopoverButton
                         icon={btn.icon}
@@ -190,7 +192,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
           {/* Mobile Trigger Button */}
           <button
-            onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+            onClick={() => {
+              const newState = !isMobileExpanded;
+              setIsMobileExpanded(newState);
+              onMobileToggle?.(newState);
+            }}
             className="bg-white text-gray-800 border border-gray-200 px-6 py-3 rounded-full shadow-lg flex items-center gap-2 font-medium active:scale-95 transition-transform"
           >
             {isMobileExpanded ? (
