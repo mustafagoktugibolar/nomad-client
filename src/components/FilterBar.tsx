@@ -22,6 +22,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [openState, setOpenState] = useState<Record<number, boolean>>({});
+  // Mobile expansion state
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
   // Get filter store functions
   const {
@@ -89,49 +91,108 @@ const FilterBar: React.FC<FilterBarProps> = ({
   ];
 
   return (
-    <div className="bg-[#F3F4F8] rounded-full shadow-md flex items-center justify-evenly min-h-[80px] px-4 z-50 w-full mb-1">
-      {buttons.map((btn, index) => (
-        <React.Fragment key={index}>
-          {btn.type === "popover" ? (
-            <FilterPopoverButton
-              icon={btn.icon}
-              label={btn.label}
-              isSelected={openState[index] === true}
-              open={openState[index] === true}
-              onOpenChange={(open) =>
-                setOpenState((prev) => ({
-                  ...prev,
-                  [index]: open,
-                }))
-              }
-            >
-              {React.cloneElement(btn.content as React.ReactElement, {
-                onClose: () =>
+    <>
+      {/* Desktop View: Horizontal Bar */}
+      <div className="hidden md:flex bg-[#F3F4F8] rounded-full shadow-md items-center justify-evenly min-h-[80px] px-4 z-50 w-full mb-1 gap-0">
+        {buttons.map((btn, index) => (
+          <React.Fragment key={index}>
+            {btn.type === "popover" ? (
+              <FilterPopoverButton
+                icon={btn.icon}
+                label={btn.label}
+                isSelected={openState[index] === true}
+                open={openState[index] === true}
+                onOpenChange={(open) =>
                   setOpenState((prev) => ({
                     ...prev,
-                    [index]: false,
-                  })),
-              })}
-            </FilterPopoverButton>
-          ) : (
-            <FilterButton
-              icon={btn.icon}
-              label={btn.label}
-              isSelected={openState[index] === true}
-              onClick={() => {
-                setSelectedIndex(index);
-                btn.onClick?.();
-              }}
-            />
-          )}
+                    [index]: open,
+                  }))
+                }
+              >
+                {React.cloneElement(btn.content as React.ReactElement, {
+                  onClose: () =>
+                    setOpenState((prev) => ({
+                      ...prev,
+                      [index]: false,
+                    })),
+                })}
+              </FilterPopoverButton>
+            ) : (
+              <FilterButton
+                icon={btn.icon}
+                label={btn.label}
+                isSelected={openState[index] === true}
+                onClick={() => {
+                  setSelectedIndex(index);
+                  btn.onClick?.();
+                }}
+              />
+            )}
 
-          {/* Separator (skip after last button) */}
-          {index < buttons.length - 1 && (
-            <div className="h-5 py-4 w-px bg-gray-300 mx-2" />
+            {/* Separator (skip after last button) */}
+            {index < buttons.length - 1 && (
+              <div className="h-5 py-4 w-px bg-gray-300 mx-2" />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Mobile View: Expandable Upwards */}
+      <div className="md:hidden w-full flex flex-col items-center">
+        {/* Expanded Content (Appears above) */}
+        {isMobileExpanded && (
+          <div className="absolute bottom-20 left-0 w-full px-4 mb-2 animate-in slide-in-from-bottom-5 fade-in duration-200">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-4 grid grid-cols-2 gap-3 border border-gray-100">
+              {buttons.map((btn, index) => (
+                <div key={index} className="flex justify-center">
+                  {btn.type === "popover" ? (
+                    <FilterPopoverButton
+                      icon={btn.icon}
+                      label={btn.label}
+                      isSelected={openState[index] === true}
+                      open={openState[index] === true}
+                      onOpenChange={(open) =>
+                        setOpenState((prev) => ({ ...prev, [index]: open }))
+                      }
+                    >
+                      {React.cloneElement(btn.content as React.ReactElement, {
+                        onClose: () => setOpenState((prev) => ({ ...prev, [index]: false })),
+                      })}
+                    </FilterPopoverButton>
+                  ) : (
+                    <FilterButton
+                      icon={btn.icon}
+                      label={btn.label}
+                      isSelected={openState[index] === true}
+                      onClick={() => {
+                        setSelectedIndex(index);
+                        btn.onClick?.();
+                        // Close menu if it's an action (like Passport)
+                        if (btn.label !== "Reset") setIsMobileExpanded(false);
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Trigger Button */}
+        <button
+          onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+          className="bg-white text-gray-800 border border-gray-200 px-6 py-3 rounded-full shadow-lg flex items-center gap-2 font-medium active:scale-95 transition-transform"
+        >
+          {isMobileExpanded ? (
+            <>Close Filters</>
+          ) : (
+            <>
+              <Briefcase className="w-4 h-4 text-blue-600" /> Filters
+            </>
           )}
-        </React.Fragment>
-      ))}
-    </div>
+        </button>
+      </div>
+    </>
   );
 };
 export default FilterBar;

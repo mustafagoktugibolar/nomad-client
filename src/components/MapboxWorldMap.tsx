@@ -5,6 +5,7 @@ import WorldMapTooltip from "./WorldMapTooltip.js";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "./ui/alert-dialog.js";
 import { useMapDataStore } from "./store/mapDataStore.js";
 import { useFilterStore } from "./store/filterStore.js";
+import { Info, X } from "lucide-react";
 
 export interface VisaDatum {
   target_country: string;  // ISO 3166-1 alpha-2 code
@@ -23,7 +24,12 @@ interface MapboxWorldMapProps {
   isSidebarOpen: boolean;
 }
 
-const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData, isSidebarOpen }) => {
+export interface MapboxWorldMapRef {
+  flyToCountry: (isoCode: string) => void;
+  fitBounds: (bounds: [number, number, number, number]) => void;
+}
+
+const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(({ visaData, isSidebarOpen }, ref) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const lastCountryZoom = useRef<number | null>(null); // Store last double-click zoom
@@ -32,10 +38,28 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData, isSidebarOpen
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
 
   // Store hooks
   const { mapData, filteredCountries, applyFilters } = useMapDataStore();
   const filterState = useFilterStore();
+
+  React.useImperativeHandle(ref, () => ({
+    flyToCountry: (isoCode: string) => {
+      // Legacy or specific ISO handling if needed
+      setSelectedCountryId(isoCode);
+      if (isoCode === 'TR' && mapRef.current) {
+        mapRef.current.flyTo({ center: [35, 39], zoom: 4 }); // Reduced zoom
+      }
+    },
+    fitBounds: (bounds: [number, number, number, number]) => {
+      if (!mapRef.current) return;
+      mapRef.current.fitBounds(
+        [[bounds[0], bounds[1]], [bounds[2], bounds[3]]],
+        { padding: 50, animate: true } // Padding ensures it's not too tight (solving "too zoomed")
+      );
+    }
+  }));
 
   // Debug: Log data structure
   React.useEffect(() => {
@@ -492,20 +516,36 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData, isSidebarOpen
       className={`w-screen h-screen relative ${mapLoaded ? "visible" : "invisible"
         }`}
     >
-      {/* Custom Legend - Moved to bottom-left */}
+      {/* Collapsible Legend */}
       {!isSidebarOpen && (
-        <div className="absolute top-5 right-5 bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg z-10 text-xs flex flex-col gap-2 border border-gray-200 transition-opacity duration-300">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#1F9566]"></div>
-            <span className="font-medium text-gray-700">Visa Free</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
-            <span className="font-medium text-gray-700">Visa on Arrival / E-Visa</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#B91C1C]"></div>
-            <span className="font-medium text-gray-700">Visa Required</span>
+        <div className="absolute top-20 right-5 md:top-5 md:right-5 z-10 flex flex-col items-end gap-2 text-xs">
+
+          {/* Toggle Button */}
+          <button
+            onClick={() => setShowLegend(!showLegend)}
+            className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            {showLegend ? <X className="w-5 h-5 text-gray-600" /> : <Info className="w-5 h-5 text-gray-600" />}
+          </button>
+
+          {/* Legend Content */}
+          <div className={`
+            bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-gray-200 
+            flex flex-col gap-2 transition-all duration-300 origin-top-right
+            ${showLegend ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none hidden"}
+          `}>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-[#1F9566]"></div>
+              <span className="font-medium text-gray-700">Visa Free</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
+              <span className="font-medium text-gray-700">Visa on Arrival / E-Visa</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-[#B91C1C]"></div>
+              <span className="font-medium text-gray-700">Visa Required</span>
+            </div>
           </div>
         </div>
       )}
@@ -530,6 +570,6 @@ const MapboxWorldMap: React.FC<MapboxWorldMapProps> = ({ visaData, isSidebarOpen
       )}
     </div>
   );
-};
+});
 
 export default MapboxWorldMap;

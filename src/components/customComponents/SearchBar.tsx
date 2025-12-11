@@ -11,6 +11,7 @@ interface SearchBarProps {
   placeholder?: string;
   onSearchChange: (value: string) => void;
   onMenuClick?: () => void;
+  onSearchSubmit?: () => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -21,6 +22,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   placeholder,
   onSearchChange,
   onMenuClick,
+  onSearchSubmit,
 }) => {
   return (
     <div className={`flex items-center rounded-lg p-2 bg-white ${inputGroupClass}`} style={{ width }}>
@@ -33,6 +35,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
         type="text"
         value={searchValue}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && onSearchSubmit) {
+            onSearchSubmit();
+          }
+        }}
         placeholder={placeholder}
         className="w-full border-0 shadow-none focus-visible:ring-0 focus-visible:border-0"
       />

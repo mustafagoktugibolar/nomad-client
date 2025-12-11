@@ -20,7 +20,7 @@ const PassportGrid: React.FC<PassportGridProps> = ({
   selectedPassport,
 }) => {
   return (
-    <div className="grid grid-cols-2 gap-4  ">{/* reduced gap */}
+    <div className="grid grid-cols-2 gap-2 md:gap-4 pb-16 md:pb-0">{/* reduced gap */}
       {passports.map((passport, idx) => {
         const isSelected = selectedPassport?.country === passport.country;
 

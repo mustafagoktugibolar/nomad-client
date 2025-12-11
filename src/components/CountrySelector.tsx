@@ -222,7 +222,7 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ onSelectCountry, styl
     const cachedData = sessionStorage.getItem('countries-data');
     const cacheTime = sessionStorage.getItem('countries-cache-time');
     const now = Date.now();
-    
+
     // Use cached data if it's less than 5 minutes old
     if (cachedData && cacheTime && (now - parseInt(cacheTime)) < 300000) {
       try {
@@ -235,31 +235,31 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ onSelectCountry, styl
         console.log('Invalid cached data, fetching fresh data...');
       }
     }
-    
+
     // Show fallback data immediately for faster perceived loading
     setCountries(FALLBACK_COUNTRIES);
     setLoading(false);
-    
+
     const fetchCountries = async () => {
       try {
         // Use faster fetch with specific fields to reduce data transfer
         const response = await safariFetch("https://restcountries.com/v3.1/all?fields=name,flag,cca2");
         const data: any[] = await response.json();
-        
+
         // Format countries and remove duplicates
         const formattedCountries = data.map((country) => ({
           name: country.name.common,
-          flag: country.flag || "", 
+          flag: country.flag || "",
           iso: country.cca2 || "", // ISO 2-letter code from restcountries API
         }));
-        
+
         const uniqueCountries = removeDuplicateCountries(formattedCountries);
         const sortedCountries = sortCountriesWithTurkeyFirst(uniqueCountries);
-        
+
         // Update with real data when available
         setCountries(sortedCountries);
         setIsInitialLoad(false);
-        
+
         // Cache the data for future use
         sessionStorage.setItem('countries-data', JSON.stringify(sortedCountries));
         sessionStorage.setItem('countries-cache-time', now.toString());
@@ -276,15 +276,15 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ onSelectCountry, styl
   // ✅ Apply search filter
   const filteredCountries = searchTerm
     ? countries.filter((country) =>
-        country.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      country.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : countries;
 
   if (loading && isInitialLoad) return <p className="text-center text-gray-500">Loading countries...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
-    <div className="w-full max-w-lg mx-auto mt-3 p-2 " style={style}>
+    <div className="w-full h-full md:max-w-lg mx-auto mt-3 p-2 pb-4 md:pb-2" style={style}>
       {isInitialLoad && (
         <div className="text-xs text-blue-500 text-center mb-2">
           Updating country list...
