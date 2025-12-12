@@ -1,4 +1,5 @@
 import React from "react";
+import { useLanguageStore } from "./store/languageStore.js";
 
 type StepType = "country" | "passport";
 
@@ -8,6 +9,7 @@ interface StepNavigationProps {
 }
 
 const StepNavigation: React.FC<StepNavigationProps> = ({ step, className }) => {
+  const { t } = useLanguageStore();
   return (
     <div className={`flex items-center justify-start ${className}`}>
       {/* Step 1 */}
@@ -21,7 +23,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({ step, className }) => {
           1
         </span>
         <span className={`text-[0.65rem] ${step === "country" ? "text-black font-medium" : "text-gray-400"}`}>
-          Select Country
+          {t('step_select_country')}
         </span>
       </div>
 
@@ -39,7 +41,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({ step, className }) => {
           2
         </span>
         <span className={`text-[0.65rem] ${step === "passport" ? "text-black font-medium" : "text-gray-400"}`}>
-          Select Passport
+          {t('step_select_passport')}
         </span>
       </div>
     </div>

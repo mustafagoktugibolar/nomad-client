@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CountrySelectionCard from "./customComponents/CountrySelectionCard.js";
+import { useLanguageStore } from "./store/languageStore.js";
 import { safariFetch, safariErrorHandler, isSafari, safariRetry, sortCountriesWithTurkeyFirst, removeDuplicateCountries } from "../lib/safari-polyfills.js";
 
 // Fallback country data in case API fails - Turkey first, then alphabetically sorted
@@ -216,6 +217,7 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ onSelectCountry, styl
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+  const { t } = useLanguageStore();
 
   useEffect(() => {
     // Check if we have cached data
@@ -280,14 +282,14 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ onSelectCountry, styl
     )
     : countries;
 
-  if (loading && isInitialLoad) return <p className="text-center text-gray-500">Loading countries...</p>;
+  if (loading && isInitialLoad) return <p className="text-center text-gray-500">{t('country_selector_loading')}</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
     <div className="w-full h-full md:max-w-lg mx-auto mt-3 p-2 pb-4 md:pb-2" style={style}>
       {isInitialLoad && (
         <div className="text-xs text-blue-500 text-center mb-2">
-          Updating country list...
+          {t('country_selector_updating')}
         </div>
       )}
       <CountrySelectionCard countries={filteredCountries} onSelectCountry={onSelectCountry} />

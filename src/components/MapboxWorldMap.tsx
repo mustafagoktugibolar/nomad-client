@@ -5,6 +5,7 @@ import WorldMapTooltip from "./WorldMapTooltip.js";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "./ui/alert-dialog.js";
 import { useMapDataStore } from "./store/mapDataStore.js";
 import { useFilterStore } from "./store/filterStore.js";
+import { useLanguageStore } from "./store/languageStore.js"; // Import language store
 import { Info, X, Globe } from "lucide-react";
 
 export interface VisaDatum {
@@ -45,6 +46,7 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
   // Store hooks
   const { mapData, filteredCountries, applyFilters } = useMapDataStore();
   const filterState = useFilterStore();
+  const { t, language, setLanguage } = useLanguageStore(); // Use language hook
 
   React.useImperativeHandle(ref, () => ({
     flyToCountry: (isoCode: string) => {
@@ -517,6 +519,16 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
   }, [mapLoaded, filteredCountries]);
 
 
+  // Helper for dynamic passport label in settings
+  const getSettingsPassportLabel = (p: string | null) => {
+    if (!p) return t('passport_default');
+    if (p.includes("Bordo") || p.includes("Ordinary")) return t('passport_bordo');
+    if (p.includes("Yeşil") || p.includes("Special")) return t('passport_yesil');
+    if (p.includes("Gri") || p.includes("Service")) return t('passport_gri');
+    if (p.includes("Siyah") || p.includes("Diplomatic")) return t('passport_siyah');
+    return p;
+  };
+
   return (
     <div
       ref={mapContainerRef}
@@ -559,7 +571,7 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
           <div className="bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-xl border border-gray-100 flex flex-col gap-3 transition-all duration-300 origin-top-right min-w-[200px] animate-in fade-in zoom-in-95">
             {/* Header with Close */}
             <div className="flex items-center justify-between border-b border-gray-100 pb-2 mb-1">
-              <span className="font-semibold text-gray-800 text-sm">Settings</span>
+              <span className="font-semibold text-gray-800 text-sm">{t('settings_title')}</span>
               <button
                 onClick={() => setShowLegend(false)}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -571,35 +583,38 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
             {/* Settings Items */}
             <div className="flex flex-col gap-3 mb-3">
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Language</span>
-                <button className="flex items-center justify-between w-full p-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors text-left group">
-                  <span className="text-sm font-medium text-gray-700">English</span>
-                  <span className="text-xs text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">Change</span>
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('settings_language')}</span>
+                <button
+                  onClick={() => setLanguage(language === 'en' ? 'tr' : 'en')}
+                  className="flex items-center justify-between w-full p-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors text-left group"
+                >
+                  <span className="text-sm font-medium text-gray-700">{language === 'en' ? 'English' : 'Türkçe'}</span>
+                  <span className="text-xs text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">{t('settings_change')}</span>
                 </button>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">User Passport</span>
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('settings_passport')}</span>
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50/50 border border-blue-100">
-                  <span className="text-xs font-medium text-blue-700">Ordinary Passport (Bordo)</span>
+                  <span className="text-xs font-medium text-blue-700">{getSettingsPassportLabel(filterState.passport)}</span>
                 </div>
               </div>
             </div>
 
             {/* Mobile Legend (Hidden on Desktop) */}
             <div className="md:hidden flex flex-col gap-2 pt-3 border-t border-gray-100">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Map Legend</span>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('settings_map_legend')}</span>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#1F9566]"></div>
-                  <span className="text-sm text-gray-700">Visa Free</span>
+                  <span className="text-sm text-gray-700">{t('legend_visa_free')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></div>
-                  <span className="text-sm text-gray-700">Visa on Arrival / E-Visa</span>
+                  <span className="text-sm text-gray-700">{t('legend_visa_on_arrival')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#B91C1C]"></div>
-                  <span className="text-sm text-gray-700">Visa Required</span>
+                  <span className="text-sm text-gray-700">{t('legend_visa_required')}</span>
                 </div>
               </div>
             </div>
@@ -611,15 +626,15 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-gray-200/50 flex items-center gap-3 text-[11px] whitespace-nowrap hidden md:flex">
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-[#1F9566]"></div>
-          <span className="font-medium text-gray-700">Visa Free</span>
+          <span className="font-medium text-gray-700">{t('legend_visa_free')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></div>
-          <span className="font-medium text-gray-700">Visa on Arrival / E-Visa</span>
+          <span className="font-medium text-gray-700">{t('legend_visa_on_arrival')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-[#B91C1C]"></div>
-          <span className="font-medium text-gray-700">Visa Required</span>
+          <span className="font-medium text-gray-700">{t('legend_visa_required')}</span>
         </div>
       </div>
 

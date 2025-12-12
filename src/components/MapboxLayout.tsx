@@ -6,6 +6,8 @@ import SearchBar from "./customComponents/SearchBar.js";
 import { Passport } from "./PassportSelector.js";
 import { useFilterStore } from "./store/filterStore.js";
 import { useMapDataStore } from "./store/mapDataStore.js";
+import { useLanguageStore } from "./store/languageStore.js";
+import { safariFetch, safariRetry, safariErrorHandler } from "../lib/safari-polyfills.js";
 
 const MapboxWorldMap = React.lazy(() => import("./MapboxWorldMap.js"));
 
@@ -13,15 +15,73 @@ const MapboxLayout: React.FC = () => {
   const mapRef = useRef<MapboxWorldMapRef>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPassport, setSelectedPassport] = useState<Passport | null>(null);
-  const [showSideSelector, setShowSideSelector] = useState(true);
+  // Initialize based on persistence to prevent flash
+  const [showSideSelector, setShowSideSelector] = useState(() => !localStorage.getItem("passport"));
   const [showFilterBar, setShowFilterBar] = useState(false);
 
   // Now accepts both the passport and the fetched visaData
   const [visaData, setVisaData] = useState<VisaDatum[] | null>(null);
 
   // Get filter store values
-  const { passport, reason, budget, security, season } = useFilterStore();
+  const { passport, setPassport, reason, budget, security, season } = useFilterStore();
   const { applyFilters } = useMapDataStore();
+  const { t } = useLanguageStore();
+
+  // Auto-login with persisted passport
+  useEffect(() => {
+    // If we have a stored passport but no selected passport in state yet
+    if (passport && !selectedPassport) {
+      const autoLogin = async () => {
+        try {
+          // Verify it's Turkey (currently only supported)
+          const p = passport || "";
+          let matched: Passport | null = null;
+
+          if (p.includes("Yeşil") || p.includes("Special") || p.includes("Hususi")) {
+            matched = { country: p, image: "/passports/yesil.png", validity: "5 years" };
+          } else if (p.includes("Gri") || p.includes("Service") || p.includes("Hizmet")) {
+            matched = { country: p, image: "/passports/gri.png", validity: "5 years" };
+          } else if (p.includes("Siyah") || p.includes("Diplomatic") || p.includes("Diplomatik")) {
+            matched = { country: p, image: "/passports/siyah.png", validity: "5 years" };
+          } else if (
+            p.includes("Bordo") ||
+            p.includes("Ordinary") ||
+            p.includes("Umuma") ||
+            p.includes("Turkey") ||
+            p === "TR"
+          ) {
+            matched = { country: p, image: "/passports/bordo.png", validity: "10 years" };
+          }
+
+          if (matched) {
+            const apiBase = import.meta.env.VITE_API_BASE || '';
+            const url = `${apiBase}/api/nomad/api/v1/getMapDetail?passport_type=TR_ORDINARY`;
+
+            const data = await safariRetry(async () => {
+              const res = await safariFetch(url);
+              return res.json();
+            }, 3, 1000);
+
+            if (data) {
+              setSelectedPassport(matched);
+              setVisaData(data);
+              setShowSideSelector(false); // Ensure it stays closed
+              setShowFilterBar(true);
+            }
+          } else {
+            // If passport is unknown/unsupported, show selector
+            setShowSideSelector(true);
+          }
+        } catch (error) {
+          safariErrorHandler(error, "MapboxLayout Auto-Login");
+          // If failed, let user select manually
+          setShowSideSelector(true);
+        }
+      };
+
+      autoLogin();
+    }
+  }, [passport, selectedPassport]);
 
   // Side Selector controlled state
   const [sideStep, setSideStep] = useState<"country" | "passport">("country");
@@ -38,8 +98,9 @@ const MapboxLayout: React.FC = () => {
     });
   }, [passport, reason, budget, security, season, applyFilters]);
 
-  const handlePassportSubmit = (passport: Passport, data: VisaDatum[]) => {
-    setSelectedPassport(passport);
+  const handlePassportSubmit = (passportObj: Passport, data: VisaDatum[]) => {
+    setSelectedPassport(passportObj);
+    setPassport(passportObj.country); // Persist to store
     setVisaData(data);
 
     // slide panel out
@@ -91,7 +152,7 @@ const MapboxLayout: React.FC = () => {
       <React.Suspense fallback={
         <div className="w-screen h-screen bg-[#A9D5E8] flex flex-col items-center justify-center text-white">
           <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
-          <span className="font-medium text-lg tracking-wide">Loading World Map...</span>
+          <span className="font-medium text-lg tracking-wide">{t('loading_world_map')}</span>
         </div>
       }>
         <MapboxWorldMap ref={mapRef} visaData={visaData} isSidebarOpen={showSideSelector} />
@@ -101,7 +162,7 @@ const MapboxLayout: React.FC = () => {
       <div className="fixed top-2 left-2 right-2 md:top-5 md:left-10 md:w-full md:max-w-[400px] z-50">
         <SearchBar
           width="100%"
-          placeholder="Nomad"
+          placeholder={t('search_placeholder_nomad')}
           inputGroupClass="bg-white shadow-md rounded-lg p-2"
           showMenuIcon
           onMenuClick={handleMenuClick}

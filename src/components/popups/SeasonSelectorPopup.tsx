@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import React from "react";
 import { Checkbox } from "../ui/checkbox.js";
 import { useFilterStore } from "../store/filterStore.js";
+import { useLanguageStore } from "../store/languageStore.js";
 
 const seasons = ["Spring", "Summer", "Autumn", "Winter"] as const;
 type Season = typeof seasons[number];
@@ -12,6 +13,17 @@ interface Props {
 
 const SeasonSelectorPopup: React.FC<Props> = ({ onClose }) => {
   const { season: selectedSeasons, setSeason } = useFilterStore();
+  const { t } = useLanguageStore();
+
+  const getLabel = (s: string) => {
+    switch (s) {
+      case "Spring": return t('season_spring');
+      case "Summer": return t('season_summer');
+      case "Autumn": return t('season_autumn');
+      case "Winter": return t('season_winter');
+      default: return s;
+    }
+  };
 
   const toggle = (seasonItem: Season) => {
     const isSelected = selectedSeasons.includes(seasonItem);
@@ -25,7 +37,7 @@ const SeasonSelectorPopup: React.FC<Props> = ({ onClose }) => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <span className="text-base font-semibold">Season</span>
+        <span className="text-base font-semibold">{t('filter_seasons')}</span>
         <button
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground"
@@ -42,7 +54,7 @@ const SeasonSelectorPopup: React.FC<Props> = ({ onClose }) => {
                 checked={selectedSeasons.includes(seasonItem)}
                 onCheckedChange={() => toggle(seasonItem)}
               />
-              <span className="text-sm">{seasonItem}</span>
+              <span className="text-sm">{getLabel(seasonItem)}</span>
             </div>
           </label>
         ))}

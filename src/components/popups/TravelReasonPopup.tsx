@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import React from "react";
 import { Combobox } from "../ui/combobox.js";
 import { useFilterStore } from "../store/filterStore.js";
+import { useLanguageStore } from "../store/languageStore.js";
 
 export type ComboboxData = {
   value: string;
@@ -19,11 +20,29 @@ const reasons: ComboboxData[] = [
 
 const TravelReasonPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { reason, setReason } = useFilterStore();
+  const { t } = useLanguageStore();
+
+  const getReasonLabel = (val: string) => {
+    switch (val) {
+      case "tourism": return t('reason_tourism');
+      case "business": return t('reason_business');
+      case "family": return t('reason_family');
+      case "education": return t('reason_education');
+      case "work": return t('reason_work');
+      case "transit": return t('reason_transit');
+      default: return val;
+    }
+  };
+
+  const translatedReasons = reasons.map(r => ({
+    value: r.value,
+    label: getReasonLabel(r.value)
+  }));
 
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <span className="text-base font-semibold">Travel Reason</span>
+        <span className="text-base font-semibold">{t('filter_travel_reason')}</span>
         <button
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground"
@@ -33,9 +52,9 @@ const TravelReasonPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       </div>
 
       <Combobox
-        datas={reasons}
+        datas={translatedReasons}
         value={reason ?? ""}
-        placeholder="Travel Reason"
+        placeholder={t('filter_travel_reason')}
         onChange={(val) => setReason(val)}
       />
     </>

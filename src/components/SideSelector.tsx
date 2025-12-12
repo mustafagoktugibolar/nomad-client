@@ -3,6 +3,7 @@ import CountrySelector from "./CountrySelector.js";
 import PassportSelector, { Passport } from "./PassportSelector.js";
 import StepNavigation from "./StepNavigation.js";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "./ui/alert-dialog.js";
+import { useLanguageStore } from "./store/languageStore.js";
 
 type StepType = "country" | "passport";
 
@@ -30,6 +31,7 @@ const SideSelector: React.FC<SideSelectorProps> = ({
 }) => {
   // Removed internal state for step and selectedCountry
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const { t } = useLanguageStore();
 
   return (
     <div
@@ -102,13 +104,13 @@ const SideSelector: React.FC<SideSelectorProps> = ({
         <AlertDialog open={showComingSoon} onOpenChange={(o) => setShowComingSoon(o)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Coming Soon</AlertDialogTitle>
+              <AlertDialogTitle>{t('coming_soon_title')}</AlertDialogTitle>
               <AlertDialogDescription>
-                Only Turkey is supported right now. More countries will be added soon.
+                {t('coming_soon_desc')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setShowComingSoon(false)}>OK</AlertDialogAction>
+              <AlertDialogAction onClick={() => setShowComingSoon(false)}>{t('coming_soon_ok')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

@@ -1,6 +1,9 @@
 import React from "react";
 import { Info, X } from "lucide-react";
 import { useMapDataStore } from "./store/mapDataStore.js";
+import { useLanguageStore } from "./store/languageStore.js";
+
+
 
 // Custom tooltip for security level
 type SecurityTooltipProps = {
@@ -41,8 +44,9 @@ function SecurityTooltip({ desc, children }: SecurityTooltipProps) {
           left: '50%',
           [dirUp ? 'bottom' : 'top']: '130%',
           transform: 'translateX(-50%)',
-          background: '#1f2937', // Dark gray
-          color: '#fff',
+          background: '#ffffff',
+          color: '#1f2937',
+          border: '1px solid #e2e8f0',
           padding: '8px 12px',
           borderRadius: 8,
           fontSize: 12,
@@ -65,7 +69,7 @@ function SecurityTooltip({ desc, children }: SecurityTooltipProps) {
             height: 0,
             borderLeft: '5px solid transparent',
             borderRight: '5px solid transparent',
-            borderBottom: '5px solid #1f2937'
+            borderBottom: '5px solid #ffffff'
           }} />
           {desc}
         </div>
@@ -88,6 +92,7 @@ interface WorldMapTooltipProps {
 
 const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo, onClose }) => {
   const mapData = useMapDataStore((state) => state.mapData);
+  const { t } = useLanguageStore();
   const [isMobile, setIsMobile] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
   React.useEffect(() => {
@@ -405,7 +410,14 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo, onClose })
   }
 
   const isoForFlag = (countryData as any)?.target_country as string | undefined;
-  const secLevel = (countryData as any)?.security_level_name || '';
+  const rawSecLevel = (countryData as any)?.security_level_name || '';
+  let secLevel = rawSecLevel;
+  const lowerSec = rawSecLevel.toLowerCase();
+
+  if (lowerSec.includes('güvenli')) secLevel = t('security_safe');
+  else if (lowerSec.includes('riskli') || lowerSec.includes('risk')) secLevel = t('security_risk');
+  else if (lowerSec.includes('tehlikeli')) secLevel = t('security_dangerous');
+  else if (lowerSec.includes('gidilmemeli') || lowerSec.includes('do not travel')) secLevel = t('security_extreme');
   const secColor = getSecurityColor(secLevel);
 
   const containerStyle: React.CSSProperties = isMobile ? {
@@ -498,43 +510,43 @@ const WorldMapTooltip: React.FC<WorldMapTooltipProps> = ({ popupInfo, onClose })
         {countryData ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <b style={{ color: '#555', fontWeight: 600 }}>Capital:</b>
+              <b style={{ color: '#555', fontWeight: 600 }}>{t('tooltip_capital')}</b>
               <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>{(countryData as any).capital || 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <b style={{ color: '#555', fontWeight: 600 }}>Biggest City:</b>
+              <b style={{ color: '#555', fontWeight: 600 }}>{t('tooltip_biggest_city')}</b>
               <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>{(countryData as any).biggest_city || 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <b style={{ color: '#555', fontWeight: 600 }}>Night Life:</b>
+              <b style={{ color: '#555', fontWeight: 600 }}>{t('tooltip_night_life')}</b>
               <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>{(countryData as any).night_life_name || 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <b style={{ color: '#555', fontWeight: 600 }}>Visit Type:</b>
+              <b style={{ color: '#555', fontWeight: 600 }}>{t('tooltip_visit_type')}</b>
               <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}><FirstValueSingleLine text={(countryData as any).visit_type_name} limit={20} /></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <b style={{ color: '#555', fontWeight: 600 }}>Avg Daily Spend:</b>
+              <b style={{ color: '#555', fontWeight: 600 }}>{t('tooltip_avg_daily_spend')}</b>
               <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>
                 ${(countryData as any).spent_amount_daily_avg || 'N/A'}
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <b style={{ color: '#555', fontWeight: 600 }}>Avg Weekly Spend:</b>
+              <b style={{ color: '#555', fontWeight: 600 }}>{t('tooltip_avg_weekly_spend')}</b>
               <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>
                 ${(countryData as any).spent_amount_avg || 'N/A'}
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <b style={{ color: '#555', fontWeight: 600 }}>Best Season:</b>
+              <b style={{ color: '#555', fontWeight: 600 }}>{t('tooltip_best_season')}</b>
               <span style={{ flex: 1, textAlign: 'right', marginLeft: 12 }}>{(countryData as any).season_name || 'N/A'}</span>
             </div>
           </>
         ) : (
           <>
-            <div style={{ marginBottom: 6, textAlign: 'right' }}>🌍 Country Information:</div>
-            <div style={{ marginBottom: 6, textAlign: 'right' }}>Longitude: {popupInfo.lng}</div>
-            <div style={{ marginBottom: 6, textAlign: 'right' }}>Latitude: {popupInfo.lat}</div>
+            <div style={{ marginBottom: 6, textAlign: 'right' }}>{t('tooltip_country_info')}</div>
+            <div style={{ marginBottom: 6, textAlign: 'right' }}>{t('tooltip_longitude')} {popupInfo.lng}</div>
+            <div style={{ marginBottom: 6, textAlign: 'right' }}>{t('tooltip_latitude')} {popupInfo.lat}</div>
           </>
         )}
       </div>
@@ -586,8 +598,9 @@ function TruncateWithTooltip({ text = '', limit = 28 }: { text?: string; limit?:
             left: '50%',
             [dirUp ? 'bottom' : 'top']: '130%',
             transform: 'translateX(-50%)',
-            background: '#1f2937',
-            color: '#fff',
+            background: '#ffffff',
+            color: '#1f2937',
+            border: '1px solid #e2e8f0',
             padding: '8px 12px',
             borderRadius: 8,
             fontSize: 12,
@@ -613,7 +626,7 @@ function TruncateWithTooltip({ text = '', limit = 28 }: { text?: string; limit?:
             height: 0,
             borderLeft: '5px solid transparent',
             borderRight: '5px solid transparent',
-            borderBottom: '5px solid #1f2937'
+            borderBottom: '5px solid #ffffff'
           }} />
           {text}
         </div>
@@ -665,8 +678,9 @@ function FirstValueSingleLine({ text = '', limit = 20 }: { text?: string; limit?
             left: '50%',
             [dirUp ? 'bottom' : 'top']: '130%',
             transform: 'translateX(-50%)',
-            background: '#1f2937', // Dark gray
-            color: '#fff',
+            background: '#ffffff', // White
+            color: '#1f2937',
+            border: '1px solid #e2e8f0',
             padding: '8px 12px',
             borderRadius: 8,
             fontSize: 12,
@@ -688,14 +702,14 @@ function FirstValueSingleLine({ text = '', limit = 20 }: { text?: string; limit?
             height: 0,
             borderLeft: '5px solid transparent',
             borderRight: '5px solid transparent',
-            borderBottom: `5px solid #1f2937`,
+            borderBottom: `5px solid #ffffff`,
             ...(dirUp ? { transform: 'translateX(-50%) rotate(180deg)' } : {})
           }} />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {parts.map((p, i) => (
               <div key={i} style={{
-                background: 'rgba(255,255,255,0.1)',
+                background: '#f3f4f6',
                 padding: '4px 8px',
                 borderRadius: 4,
                 fontSize: 12,

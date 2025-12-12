@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import PassportGrid from "./customComponents/PassportGrid.js";
 import { safariFetch, safariErrorHandler, safariRetry } from "../lib/safari-polyfills.js";
+import { useLanguageStore } from "./store/languageStore.js";
 
 export interface Passport {
   country: string;
@@ -22,12 +23,13 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
   const [selectedPassport, setSelectedPassport] = useState<Passport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguageStore();
 
   const passports: Passport[] = [
-    { country: "Ordinary Passport (Bordo)", image: "/passports/bordo.png", validity: "10 years" },
-    { country: "Special Passport (Yeşil)", image: "/passports/yesil.png", validity: "5 years" },
-    { country: "Service Passport (Gri)", image: "/passports/gri.png", validity: "5 years" },
-    { country: "Diplomatic Passport (Siyah)", image: "/passports/siyah.png", validity: "5 years" },
+    { country: t("passport_bordo"), image: "/passports/bordo.png", validity: "10 years" },
+    { country: t("passport_yesil"), image: "/passports/yesil.png", validity: "5 years" },
+    { country: t("passport_gri"), image: "/passports/gri.png", validity: "5 years" },
+    { country: t("passport_siyah"), image: "/passports/siyah.png", validity: "5 years" },
   ];
 
   const filtered = passports.filter(p => p.country === selectedCountry);
@@ -62,7 +64,7 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
 
   return (
     <div className="relative flex flex-col h-full pt-4 pb-20 pr-3 bg-white">
-      <h5 className="font-bold text-xl mb-4 pt-4">Select passport for {selectedCountry}</h5>
+      <h5 className="font-bold text-xl mb-4 pt-4">{t('passport_selector_title')} {selectedCountry}</h5>
 
       {/* any error */}
       {error && (
@@ -85,7 +87,7 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
           onClick={onBack}
           disabled={loading}
         >
-          Back
+          {t('passport_back')}
         </button>
 
         <button
@@ -111,7 +113,7 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
               />
             </svg>
           )}
-          <span>{loading ? "Loading..." : "Submit"}</span>
+          <span>{loading ? t('passport_loading') : t('passport_submit')}</span>
         </button>
       </div>
     </div>

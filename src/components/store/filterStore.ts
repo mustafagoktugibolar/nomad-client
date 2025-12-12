@@ -29,23 +29,33 @@ interface FilterState {
 
 
 export const useFilterStore = create<FilterState>((set) => ({
-  passport: null,
+  passport: localStorage.getItem("passport") || null,
   reason: null,
   budget: 1200,
   security: [],
   season: [],
 
-  setPassport: (passport) => set({ passport }),
+  setPassport: (passport) => {
+    if (passport) {
+      localStorage.setItem("passport", passport);
+    } else {
+      localStorage.removeItem("passport");
+    }
+    set({ passport });
+  },
   setReason: (reason) => set({ reason }),
   setBudget: (budget) => set({ budget }),
   setSecurity: (levels) => set({ security: levels }),
   setSeason: (seasons) => set({ season: seasons }),
 
-  resetFilters: () => set({
-    passport: null,
-    reason: null,
-    budget: 1200,
-    security: [],
-    season: []
-  }),
+  resetFilters: () => {
+    localStorage.removeItem("passport");
+    set({
+      passport: null,
+      reason: null,
+      budget: 1200,
+      security: [],
+      season: []
+    });
+  },
 }));

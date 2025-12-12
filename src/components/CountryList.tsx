@@ -1,5 +1,7 @@
 import React from "react";
 
+import { useLanguageStore } from "./store/languageStore.js";
+
 interface Country {
   name: string;
   flag: string;
@@ -13,6 +15,7 @@ interface CountryListProps {
 }
 
 const CountryList: React.FC<CountryListProps> = ({ countries, searchTerm, onSelectCountry }) => {
+  const { t } = useLanguageStore();
   // Render an ISO-based flag image with emoji fallback (fixes Windows showing letters instead of emoji)
   const FlagIcon: React.FC<{ iso?: string; emoji?: string; name: string }> = ({ iso, emoji, name }) => {
     const [error, setError] = React.useState(false);
@@ -42,7 +45,7 @@ const CountryList: React.FC<CountryListProps> = ({ countries, searchTerm, onSele
     <div className="flex flex-col bg-gray-100 rounded-lg mb-4 mt-1 overflow-hidden">
       {/* Fixed Title Header */}
       <div className="flex items-center justify-between py-2 bg-gray-100 border-b border-gray-200">
-        <div className="text-xs font-medium px-2 tracking-wide text-gray-600 uppercase">Countries</div>
+        <div className="text-xs font-medium px-2 tracking-wide text-gray-600 uppercase">{t('country_list_header')}</div>
       </div>
 
       {/* Scrollable Country List */}
