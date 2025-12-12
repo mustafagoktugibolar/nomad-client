@@ -5,7 +5,7 @@ import WorldMapTooltip from "./WorldMapTooltip.js";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "./ui/alert-dialog.js";
 import { useMapDataStore } from "./store/mapDataStore.js";
 import { useFilterStore } from "./store/filterStore.js";
-import { Info, X } from "lucide-react";
+import { Info, X, Globe } from "lucide-react";
 
 export interface VisaDatum {
   target_country: string;  // ISO 3166-1 alpha-2 code
@@ -40,6 +40,7 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
+  const [isDefaultView, setIsDefaultView] = useState(true);
 
   // Store hooks
   const { mapData, filteredCountries, applyFilters } = useMapDataStore();
@@ -265,6 +266,13 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
             lastCountryZoom.current = null; // Reset so it only triggers once
           }
         }
+      });
+
+      map.on('moveend', () => {
+        const zoom = map.getZoom();
+        // Show reset button if zoomed in significantly (zoom > 2.5) or moved far
+        // Simple heuristic: just check zoom for now as most interactions involve zooming
+        setIsDefaultView(zoom < 2.5);
       });
 
       mapRef.current = map;
@@ -516,58 +524,128 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
         }`}
     >
       {/* Collapsible Legend */}
-      {!isSidebarOpen && (
-        <div className="absolute top-20 right-5 md:top-5 md:right-5 z-10 flex flex-col items-end gap-2 text-xs">
+      <div className="absolute top-20 right-5 md:top-5 md:right-5 z-10 flex flex-col items-end gap-2 text-xs">
 
-          {/* Toggle Button */}
+        {/* Info Menu Trigger */}
+        <button
+          onClick={() => setShowLegend(!showLegend)}
+          className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+        >
+          <Info className="w-5 h-5 text-gray-600" />
+        </button>
+
+        {/* Reset View Button */}
+        {!isDefaultView && (
           <button
-            onClick={() => setShowLegend(!showLegend)}
-            className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            onClick={() => {
+              if (mapRef.current) {
+                mapRef.current.fitBounds([[-160, -55], [160, 75]], { padding: 10, animate: true });
+                // Reset Visibility if it was hidden by deep zoom
+                if (mapRef.current.getLayer("visa-layer")) mapRef.current.setLayoutProperty("visa-layer", "visibility", "visible");
+                if (mapRef.current.getLayer("country-layer")) mapRef.current.setLayoutProperty("country-layer", "visibility", "visible");
+              }
+              setSelectedCountryId(null);
+              setPopupInfo(null);
+            }}
+            className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors animate-in fade-in zoom-in-50"
+            title="Reset to World View"
           >
-            {showLegend ? <X className="w-5 h-5 text-gray-600" /> : <Info className="w-5 h-5 text-gray-600" />}
+            <Globe className="w-5 h-5 text-gray-600" />
           </button>
+        )}
 
-          {/* Legend Content */}
-          <div className={`
-            bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-gray-200 
-            flex flex-col gap-2 transition-all duration-300 origin-top-right
-            ${showLegend ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none hidden"}
-          `}>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#1F9566]"></div>
-              <span className="font-medium text-gray-700">Visa Free</span>
+        {/* Info Menu Content */}
+        {showLegend && (
+          <div className="bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-xl border border-gray-100 flex flex-col gap-3 transition-all duration-300 origin-top-right min-w-[200px] animate-in fade-in zoom-in-95">
+            {/* Header with Close */}
+            <div className="flex items-center justify-between border-b border-gray-100 pb-2 mb-1">
+              <span className="font-semibold text-gray-800 text-sm">Settings</span>
+              <button
+                onClick={() => setShowLegend(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
-              <span className="font-medium text-gray-700">Visa on Arrival / E-Visa</span>
+
+            {/* Settings Items */}
+            <div className="flex flex-col gap-3 mb-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Language</span>
+                <button className="flex items-center justify-between w-full p-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors text-left group">
+                  <span className="text-sm font-medium text-gray-700">English</span>
+                  <span className="text-xs text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">Change</span>
+                </button>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">User Passport</span>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50/50 border border-blue-100">
+                  <span className="text-xs font-medium text-blue-700">Ordinary Passport (Bordo)</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#B91C1C]"></div>
-              <span className="font-medium text-gray-700">Visa Required</span>
+
+            {/* Mobile Legend (Hidden on Desktop) */}
+            <div className="md:hidden flex flex-col gap-2 pt-3 border-t border-gray-100">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Map Legend</span>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#1F9566]"></div>
+                  <span className="text-sm text-gray-700">Visa Free</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></div>
+                  <span className="text-sm text-gray-700">Visa on Arrival / E-Visa</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#B91C1C]"></div>
+                  <span className="text-sm text-gray-700">Visa Required</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {popupInfo && (
-        <WorldMapTooltip popupInfo={popupInfo} onClose={() => setPopupInfo(null)} />
-      )}
-      {showComingSoon && (
-        <AlertDialog open={showComingSoon} onOpenChange={setShowComingSoon}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Coming Soon</AlertDialogTitle>
-              <AlertDialogDescription>
-                Data for this country is not available yet. We are working to add more countries soon.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setShowComingSoon(false)}>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-    </div>
+      {/* Permanent Legend Bar */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-gray-200/50 flex items-center gap-3 text-[11px] whitespace-nowrap hidden md:flex">
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#1F9566]"></div>
+          <span className="font-medium text-gray-700">Visa Free</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></div>
+          <span className="font-medium text-gray-700">Visa on Arrival / E-Visa</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#B91C1C]"></div>
+          <span className="font-medium text-gray-700">Visa Required</span>
+        </div>
+      </div>
+
+      {
+        popupInfo && (
+          <WorldMapTooltip popupInfo={popupInfo} onClose={() => setPopupInfo(null)} />
+        )
+      }
+      {
+        showComingSoon && (
+          <AlertDialog open={showComingSoon} onOpenChange={setShowComingSoon}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Coming Soon</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Data for this country is not available yet. We are working to add more countries soon.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction onClick={() => setShowComingSoon(false)}>OK</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )
+      }
+    </div >
   );
 });
 
