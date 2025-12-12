@@ -122,8 +122,26 @@ interface LanguageState {
     t: (key: string) => string;
 }
 
+// Helper to determine initial language
+const getInitialLanguage = (): Language => {
+    // 1. Check local storage first
+    const stored = localStorage.getItem("language") as Language | null;
+    if (stored) return stored;
+
+    // 2. Check browser language (for first time users)
+    if (typeof navigator !== 'undefined') {
+        const browserLang = navigator.language || (navigator.languages && navigator.languages[0]);
+        if (browserLang && browserLang.toLowerCase().startsWith('tr')) {
+            return 'tr';
+        }
+    }
+
+    // 3. Default to English
+    return 'en';
+};
+
 export const useLanguageStore = create<LanguageState>((set, get) => ({
-    language: (localStorage.getItem("language") as Language) || "en",
+    language: getInitialLanguage(),
 
     setLanguage: (lang) => {
         localStorage.setItem("language", lang);
