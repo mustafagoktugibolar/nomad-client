@@ -185,26 +185,31 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
       let matches = true;
 
       // Security filter - use security_level_name  
-      if (filters.security && filters.security.length > 0) {
+      if (filters.security && filters.security.length > 0 && filters.security.length < 5) {
         const securityMatches = filters.security.some(level => {
           const securityName = country.security_level_name?.toLowerCase() || '';
           const levelLower = level.toLowerCase();
 
           // Map security levels to real data (handle Unicode chars)
           if (levelLower.includes('very safe') || levelLower.includes('çok güvenli')) {
-            return securityName.includes('çok gü') || securityName === 'Ã§ok gÃ¼venli';
+            return securityName.includes('çok güvenli') || securityName.includes('Ã§ok gÃ¼venli') || securityName.includes('very safe');
           } else if (levelLower.includes('generally safe') || levelLower.includes('güvenli')) {
-            return (securityName.includes('güvenli') || securityName.includes('gÃ¼venli')) &&
-              !securityName.includes('çok') && !securityName.includes('Ã§ok');
+            return (securityName.includes('güvenli') || securityName.includes('gÃ¼venli') || securityName.includes('safe')) &&
+              !securityName.includes('çok') && !securityName.includes('Ã§ok') && !securityName.includes('very');
           } else if (levelLower.includes('use caution') || levelLower.includes('normal')) {
-            return securityName.includes('normal');
+            return securityName.includes('normal') || securityName.includes('caution') || securityName.includes('exercise caution');
           } else if (levelLower.includes('risky') || levelLower.includes('güvensiz')) {
-            return securityName.includes('güvensiz') || securityName.includes('gÃ¼vensiz');
+            return (securityName.includes('güvensiz') || securityName.includes('gÃ¼vensiz') || securityName.includes('risky') || securityName.includes('unsafe') || (securityName.includes('risk') && !securityName.includes('normal'))) &&
+              !securityName.includes('çok') && !securityName.includes('very');
           } else if (levelLower.includes('do not travel') || levelLower.includes('tehlikeli')) {
             return securityName.includes('tehlikeli') ||
+              securityName.includes('çok güvensiz') ||
               securityName.includes('gidilmemeli') ||
               securityName.includes('savaş halinde') ||
-              securityName.includes('savaÅŸ halinde');
+              securityName.includes('savaÅŸ halinde') ||
+              securityName.includes('do not travel') ||
+              securityName.includes('danger') ||
+              securityName.includes('very unsafe');
           }
           return false;
         });
@@ -230,18 +235,31 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
       // If no seasons selected OR all 4 seasons selected, don't filter
       if (filters.season && filters.season.length > 0 && filters.season.length < 4) {
         const seasonMatches = filters.season.some(selectedSeason => {
-          const countrySeasonName = country.season_name?.toLowerCase() || '';
+          const countrySeasonName = country.season_name || '';
+
+          // Handle "All Year" / "Tüm Yıl" - matches everything
+          if (countrySeasonName.includes('Tüm Yıl') || countrySeasonName.toLowerCase().includes('all year')) {
+            return true;
+          }
+
+          const countrySeasonNameLower = countrySeasonName.toLowerCase();
           const selectedSeasonLower = selectedSeason.toLowerCase();
 
           // Map season names (handle Turkish and English)
           if (selectedSeasonLower.includes('spring') || selectedSeasonLower.includes('ilkbahar')) {
-            return countrySeasonName.includes('spring') || countrySeasonName.includes('ilkbahar');
+            return countrySeasonNameLower.includes('spring') ||
+              countrySeasonNameLower.includes('ilkbahar') ||
+              countrySeasonName.includes('İlkbahar');
           } else if (selectedSeasonLower.includes('summer') || selectedSeasonLower.includes('yaz')) {
-            return countrySeasonName.includes('summer') || countrySeasonName.includes('yaz');
+            return countrySeasonNameLower.includes('summer') || countrySeasonNameLower.includes('yaz');
           } else if (selectedSeasonLower.includes('autumn') || selectedSeasonLower.includes('fall') || selectedSeasonLower.includes('sonbahar')) {
-            return countrySeasonName.includes('autumn') || countrySeasonName.includes('fall') || countrySeasonName.includes('sonbahar');
+            return countrySeasonNameLower.includes('autumn') ||
+              countrySeasonNameLower.includes('fall') ||
+              countrySeasonNameLower.includes('sonbahar');
           } else if (selectedSeasonLower.includes('winter') || selectedSeasonLower.includes('kış')) {
-            return countrySeasonName.includes('winter') || countrySeasonName.includes('kış');
+            return countrySeasonNameLower.includes('winter') ||
+              countrySeasonNameLower.includes('kış') ||
+              countrySeasonNameLower.includes('kis');
           }
           return false;
         });
@@ -251,8 +269,34 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
         }
       }
 
-      // For now, passport and reason filters are placeholder since we don't have visa data
-      // In a real implementation, these would need proper API endpoints
+      // Reason filter - use visit_type_name
+      // DISABLED: User requested to disable this due to unreliable API data (visit_type_name)
+      /*
+      if (filters.reason && country.visit_type_name) {
+        const visitType = country.visit_type_name.toLowerCase();
+        const selectedReason = filters.reason.toLowerCase();
+
+        // Map UI reasons to API values (Turkish/English)
+        let matchesReason = false;
+
+        if (selectedReason === 'tourism') {
+          matchesReason = visitType.includes('turistik') || visitType.includes('gezi') || visitType.includes('kültürel') || visitType.includes('tourism') || visitType.includes('cultural');
+        } else if (selectedReason === 'business') {
+          matchesReason = visitType.includes('ticari') || visitType.includes('iş') || visitType.includes('business') || visitType.includes('work');
+        } else if (selectedReason === 'education') {
+          matchesReason = visitType.includes('eğitim') || visitType.includes('öğrenci') || visitType.includes('education') || visitType.includes('student');
+        } else if (selectedReason === 'work') {
+          matchesReason = visitType.includes('çalışma') || visitType.includes('work') || visitType.includes('employment');
+        } else {
+          // Fallback for other types or direct match
+          matchesReason = visitType.includes(selectedReason);
+        }
+
+        if (!matchesReason) {
+          matches = false;
+        }
+      }
+      */
 
       if (matches) {
         filtered.add(country.target_country);

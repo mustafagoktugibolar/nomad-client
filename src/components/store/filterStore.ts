@@ -49,9 +49,7 @@ export const useFilterStore = create<FilterState>((set) => ({
   setSeason: (seasons) => set({ season: seasons }),
 
   resetFilters: () => {
-    localStorage.removeItem("passport");
     set({
-      passport: null,
       reason: null,
       budget: 1200,
       security: [],

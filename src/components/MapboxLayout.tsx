@@ -34,6 +34,15 @@ const MapboxLayout: React.FC = () => {
   useEffect(() => {
     const langChanged = lastLanguage.current !== language;
 
+    if (langChanged) {
+      // Reset active filters (except passport) on language change to prevent mismatches
+      const { resetFilters } = useFilterStore.getState();
+      const { clearFilters } = useMapDataStore.getState();
+
+      resetFilters();
+      clearFilters();
+    }
+
     // If we have a stored passport, AND (we haven't selected one yet OR language changed)
     if (passport && (!selectedPassport || langChanged)) {
       // Update ref immediately to prevent loops
