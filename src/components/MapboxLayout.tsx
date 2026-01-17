@@ -24,7 +24,7 @@ const MapboxLayout: React.FC = () => {
 
   // Get filter store values
   const { passport, setPassport, reason, budget, security, season } = useFilterStore();
-  const { applyFilters, setMapData } = useMapDataStore();
+  const { applyFilters, setMapData, mapData } = useMapDataStore();
   const { t, language } = useLanguageStore();
 
   // Track language to trigger re-fetch on change
@@ -112,7 +112,7 @@ const MapboxLayout: React.FC = () => {
   const [sideStep, setSideStep] = useState<"country" | "passport">("country");
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
-  // Apply filters whenever any filter changes
+  // Apply filters whenever any filter changes OR when map data loads
   useEffect(() => {
     applyFilters({
       passport,
@@ -121,7 +121,7 @@ const MapboxLayout: React.FC = () => {
       security,
       season
     });
-  }, [passport, reason, budget, security, season, applyFilters]);
+  }, [passport, reason, budget, security, season, applyFilters, mapData]);
 
   const handlePassportSubmit = (passportObj: Passport, data: VisaDatum[]) => {
     setSelectedPassport(passportObj);

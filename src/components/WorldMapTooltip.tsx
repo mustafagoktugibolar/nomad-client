@@ -570,6 +570,33 @@ function TruncateWithTooltip({ text = '', limit = 28 }: { text?: string; limit?:
   if (text.length <= limit) return <span>{text}</span>;
   const short = text.slice(0, limit).trim() + '…';
 
+  // Calculate smarter position
+  const tooltipStyle: React.CSSProperties = {
+    position: 'absolute',
+    background: '#ffffff',
+    color: '#1f2937',
+    border: '1px solid #e2e8f0',
+    padding: '8px 12px',
+    borderRadius: 8,
+    fontSize: 12,
+    minWidth: 160,
+    maxWidth: 240,
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    zIndex: 10000,
+    whiteSpace: 'pre-wrap',
+    textAlign: 'left',
+    wordBreak: 'break-word',
+    pointerEvents: 'none',
+    // Dynamic Positioning
+    [dirUp ? 'bottom' : 'top']: '130%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+  };
+
+  // Adjust for mobile edges if needed
+  // (In a real scenario, we'd use useLayoutEffect to measure, but simple CSS clamp is harder here without ref measurement.
+  // Instead, let's keep it centered relative to button, but ensure max-width fits.)
+
   return (
     <span style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
       <span>{short}</span>
@@ -592,30 +619,7 @@ function TruncateWithTooltip({ text = '', limit = 28 }: { text?: string; limit?:
         }}
       >more</button>
       {open && (
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            [dirUp ? 'bottom' : 'top']: '130%',
-            transform: 'translateX(-50%)',
-            background: '#ffffff',
-            color: '#1f2937',
-            border: '1px solid #e2e8f0',
-            padding: '8px 12px',
-            borderRadius: 8,
-            fontSize: 12,
-            maxWidth: 240,
-            minWidth: 160,
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            zIndex: 10000,
-            whiteSpace: 'pre-wrap',
-            textAlign: 'left',
-            wordBreak: 'break-word',
-            pointerEvents: 'none'
-          }}
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
-        >
+        <div style={tooltipStyle}>
           {/* Arrow */}
           <div style={{
             position: 'absolute',
@@ -689,7 +693,8 @@ function FirstValueSingleLine({ text = '', limit = 20 }: { text?: string; limit?
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             zIndex: 9999,
             textAlign: 'left',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            whiteSpace: 'normal', // Allow wrapping
           }}
         >
           {/* Arrow */}

@@ -39,7 +39,7 @@ const SideSelector: React.FC<SideSelectorProps> = ({
                fixed z-50 bg-white shadow-lg rounded-2xl md:rounded-lg
                
                /* Mobile: Bottom Sheet (floating) */
-               bottom-4 w-[95%] h-[85vh] left-1/2 -translate-x-1/2 rounded-2xl
+               bottom-4 w-[95%] h-[75vh] left-1/2 -translate-x-1/2 rounded-2xl
                transform transition-all duration-300 ease-in-out
                ${isVisible ? "translate-y-0 opacity-100" : "translate-y-[120%] opacity-100"}
 

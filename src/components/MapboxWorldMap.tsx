@@ -74,19 +74,7 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
 
   // Debug logs removed
 
-  // Apply filters when filter state changes
-  React.useEffect(() => {
-    if (mapData.length > 0) {
-      // Applying filters...
-      applyFilters({
-        passport: filterState.passport,
-        reason: filterState.reason,
-        budget: filterState.budget,
-        security: filterState.security,
-        season: filterState.season,
-      });
-    }
-  }, [filterState.passport, filterState.reason, filterState.budget, filterState.security, filterState.season, mapData.length, applyFilters]);
+  // Debug logs removed
 
   // Map visa_type → fill color
   const getVisaColor = (type: string) => {
@@ -112,6 +100,9 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
   useEffect(() => {
     if (mapRef.current) return;
 
+    const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string;
+    console.log('[MapboxWorldMap] Token present:', !!token, 'Length:', token?.length);
+
     const map = new mapboxgl.Map({
       container: mapContainerRef.current!,
       style: "mapbox://styles/mapbox/streets-v11",
@@ -120,12 +111,17 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
       center: [20, 20],
       attributionControl: true, // Enable default attribution (bottom-right)
       doubleClickZoom: false, // Disable default zoom to allow custom reset behavior
-      accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string,
+      accessToken: token,
     });
 
     mapRef.current = map;
 
+    map.on('error', (e) => {
+      console.error('[MapboxWorldMap] Map error:', e);
+    });
+
     map.on("load", () => {
+      console.log('[MapboxWorldMap] Map loaded');
       setMapLoaded(true);
 
       // fit world
@@ -503,8 +499,7 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
   return (
     <div
       ref={mapContainerRef}
-      className={`w-screen h-screen relative ${mapLoaded ? "visible" : "invisible"
-        }`}
+      className={`w-screen h-screen relative`}
     >
       {/* Collapsible Legend */}
       <div className="absolute top-20 right-5 md:top-5 md:right-5 z-10 flex flex-col items-end gap-2 text-xs">

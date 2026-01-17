@@ -1,62 +1,23 @@
 version: '3.8'
 
 services:
-  # Frontend Application
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    image: goktugibolar/nomad-client:1.1.1-hotfix
+      args:
+        - VITE_MAPBOX_ACCESS_TOKEN=${VITE_MAPBOX_ACCESS_TOKEN}
+        - VITE_API_BASE=
+    ports:
+      - "8080:80"
     container_name: nomad-client
     restart: always
     environment:
       - VITE_MAPBOX_ACCESS_TOKEN=${VITE_MAPBOX_ACCESS_TOKEN}
-      - VITE_API_BASE=${VITE_API_BASE}
-      # Environment variables for automatic SSL
-      - VIRTUAL_HOST=benomad.travel,www.benomad.travel
-      - LETSENCRYPT_HOST=benomad.travel,www.benomad.travel
-      - LETSENCRYPT_EMAIL=${SSL_EMAIL}
-    networks:
-      - nomad-network
-
-  # Nginx Proxy for handling requests and SSL termination
-  nginx-proxy:
-    image: nginxproxy/nginx-proxy
-    container_name: nginx-proxy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - certs:/etc/nginx/certs
-      - vhost:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    networks:
-      - nomad-network
-
-  # ACME Companion for automatic Let's Encrypt SSL certificates
-  acme-companion:
-    image: nginxproxy/acme-companion
-    container_name: nginx-proxy-acme
-    restart: always
-    volumes:
-      - certs:/etc/nginx/certs
-      - vhost:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - DEFAULT_EMAIL=${SSL_EMAIL}
-    depends_on:
-      - nginx-proxy
+      - VITE_API_BASE=
     networks:
       - nomad-network
 
 networks:
   nomad-network:
     driver: bridge
-
-volumes:
-  certs:
-  vhost:
-  html:
