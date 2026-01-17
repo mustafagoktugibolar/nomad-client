@@ -22,6 +22,12 @@ COPY --chown=nextjs:nodejs . .
 # Ensure the app directory is owned by the non-root user
 RUN chown nextjs:nodejs /app
 
+# Build arguments
+ARG VITE_MAPBOX_ACCESS_TOKEN
+ARG VITE_API_BASE
+ENV VITE_MAPBOX_ACCESS_TOKEN=$VITE_MAPBOX_ACCESS_TOKEN
+ENV VITE_API_BASE=$VITE_API_BASE
+
 # Switch to non-root user for build
 USER nextjs
 
