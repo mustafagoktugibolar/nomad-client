@@ -31,6 +31,7 @@ interface MapDataState {
     season?: SeasonLevel[];
   }) => void;
   clearFilters: () => void;
+  setMapData: (data: CountryData[]) => void;
 }
 
 export const useMapDataStore = create<MapDataState>((set, get) => ({
@@ -67,7 +68,7 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
     try {
       // API endpoint'i doğru
       const apiBase = import.meta.env.VITE_API_BASE || '';
-      const response = await fetch(`${apiBase}/api/nomad/api/v1/getMapDetail`);
+      const response = await fetch(`${apiBase}/nomad/api/v1/getMapDetail`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -263,5 +264,12 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
 
   clearFilters: () => {
     set({ filteredCountries: new Set() });
+  },
+
+  setMapData: (data) => {
+    set({ mapData: data, isLoading: false, error: null });
+    // Also initially populate filteredCountries with all countries
+    const allIso = new Set(data.map(d => d.target_country).filter((c): c is string => !!c));
+    set({ filteredCountries: allIso });
   },
 }));

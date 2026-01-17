@@ -7,6 +7,7 @@ export interface Passport {
   country: string;
   image: string;
   validity: string;
+  type: string;
 }
 
 interface PassportSelectorProps {
@@ -26,10 +27,10 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
   const { t } = useLanguageStore();
 
   const passports: Passport[] = [
-    { country: t("passport_bordo"), image: "/passports/bordo.png", validity: "10 years" },
-    { country: t("passport_yesil"), image: "/passports/yesil.png", validity: "5 years" },
-    { country: t("passport_gri"), image: "/passports/gri.png", validity: "5 years" },
-    { country: t("passport_siyah"), image: "/passports/siyah.png", validity: "5 years" },
+    { country: t("passport_bordo"), image: "/passports/bordo.png", validity: "10 years", type: "TR-ORDINARY" },
+    { country: t("passport_yesil"), image: "/passports/yesil.png", validity: "5 years", type: "TR-SPECIAL" },
+    { country: t("passport_gri"), image: "/passports/gri.png", validity: "5 years", type: "TR-SERVICE" },
+    { country: t("passport_siyah"), image: "/passports/siyah.png", validity: "5 years", type: "TR-DIPLOMATIC" },
   ];
 
   const filtered = passports.filter(p => p.country === selectedCountry);
@@ -40,7 +41,8 @@ const PassportSelector: React.FC<PassportSelectorProps> = ({
     setLoading(true);
     try {
       const apiBase = import.meta.env.VITE_API_BASE || '';
-      const url = `${apiBase}/api/nomad/api/v1/getMapDetail?passport_type=TR_ORDINARY`;
+      const { language } = useLanguageStore.getState();
+      const url = `${apiBase}/nomad/api/v1/getMapDetail?passport_type=${selectedPassport.type}&lang=${language}`;
 
       // Use Safari-specific fetch with retry logic
       const data = await safariRetry(async () => {

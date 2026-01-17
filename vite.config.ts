@@ -16,11 +16,11 @@ export default defineConfig({
   server: {
     proxy: {
       // any request to /api/* will be sent to guryeli.com
-      "/api": {
+      "/nomad": {
         target: "https://guryeli.com",
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ""),
+        // No rewrite - pass /nomad/... as is
       },
     },
   },

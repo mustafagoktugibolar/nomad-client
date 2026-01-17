@@ -24,38 +24,49 @@ const MapboxLayout: React.FC = () => {
 
   // Get filter store values
   const { passport, setPassport, reason, budget, security, season } = useFilterStore();
-  const { applyFilters } = useMapDataStore();
-  const { t } = useLanguageStore();
+  const { applyFilters, setMapData } = useMapDataStore();
+  const { t, language } = useLanguageStore();
+
+  // Track language to trigger re-fetch on change
+  const lastLanguage = useRef(language);
 
   // Auto-login with persisted passport
   useEffect(() => {
-    // If we have a stored passport but no selected passport in state yet
-    if (passport && !selectedPassport) {
+    const langChanged = lastLanguage.current !== language;
+
+    // If we have a stored passport, AND (we haven't selected one yet OR language changed)
+    if (passport && (!selectedPassport || langChanged)) {
+      // Update ref immediately to prevent loops
+      lastLanguage.current = language;
+
       const autoLogin = async () => {
         try {
           // Verify it's Turkey (currently only supported)
           const p = passport || "";
           let matched: Passport | null = null;
 
-          if (p.includes("Yeşil") || p.includes("Special") || p.includes("Hususi")) {
-            matched = { country: p, image: "/passports/yesil.png", validity: "5 years" };
-          } else if (p.includes("Gri") || p.includes("Service") || p.includes("Hizmet")) {
-            matched = { country: p, image: "/passports/gri.png", validity: "5 years" };
-          } else if (p.includes("Siyah") || p.includes("Diplomatic") || p.includes("Diplomatik")) {
-            matched = { country: p, image: "/passports/siyah.png", validity: "5 years" };
+          // Check for exact type matches first (New behavior)
+          if (p === "TR-SPECIAL" || p.includes("Yeşil") || p.includes("Special") || p.includes("Hususi")) {
+            matched = { country: t("passport_yesil"), image: "/passports/yesil.png", validity: "5 years", type: "TR-SPECIAL" };
+          } else if (p === "TR-SERVICE" || p.includes("Gri") || p.includes("Service") || p.includes("Hizmet")) {
+            matched = { country: t("passport_gri"), image: "/passports/gri.png", validity: "5 years", type: "TR-SERVICE" };
+          } else if (p === "TR-DIPLOMATIC" || p.includes("Siyah") || p.includes("Diplomatic") || p.includes("Diplomatik")) {
+            matched = { country: t("passport_siyah"), image: "/passports/siyah.png", validity: "5 years", type: "TR-DIPLOMATIC" };
           } else if (
+            p === "TR-ORDINARY" ||
             p.includes("Bordo") ||
             p.includes("Ordinary") ||
             p.includes("Umuma") ||
             p.includes("Turkey") ||
             p === "TR"
           ) {
-            matched = { country: p, image: "/passports/bordo.png", validity: "10 years" };
+            matched = { country: t("passport_bordo"), image: "/passports/bordo.png", validity: "10 years", type: "TR-ORDINARY" };
           }
 
           if (matched) {
             const apiBase = import.meta.env.VITE_API_BASE || '';
-            const url = `${apiBase}/api/nomad/api/v1/getMapDetail?passport_type=TR_ORDINARY`;
+            const url = `${apiBase}/nomad/api/v1/getMapDetail?passport_type=${matched.type}&lang=${language}`;
+            console.log('[AutoLogin] Fetching with URL:', url);
 
             const data = await safariRetry(async () => {
               const res = await safariFetch(url);
@@ -63,12 +74,17 @@ const MapboxLayout: React.FC = () => {
             }, 3, 1000);
 
             if (data) {
+              console.log('[AutoLogin] Data received, items:', data.length);
               setSelectedPassport(matched);
               setVisaData(data);
+              setMapData(data); // Sync with store!
               setShowSideSelector(false); // Ensure it stays closed
               setShowFilterBar(true);
+            } else {
+              console.warn('[AutoLogin] Data is empty/null');
             }
           } else {
+            console.warn('[AutoLogin] No passport match found for:', p);
             // If passport is unknown/unsupported, show selector
             setShowSideSelector(true);
           }
@@ -81,7 +97,7 @@ const MapboxLayout: React.FC = () => {
 
       autoLogin();
     }
-  }, [passport, selectedPassport]);
+  }, [passport, selectedPassport, language]);
 
   // Side Selector controlled state
   const [sideStep, setSideStep] = useState<"country" | "passport">("country");
@@ -100,8 +116,9 @@ const MapboxLayout: React.FC = () => {
 
   const handlePassportSubmit = (passportObj: Passport, data: VisaDatum[]) => {
     setSelectedPassport(passportObj);
-    setPassport(passportObj.country); // Persist to store
+    setPassport(passportObj.type); // Persist TYPE (e.g. TR-ORDINARY) not name
     setVisaData(data);
+    setMapData(data as any); // Sync with store
 
     // slide panel out
     setShowSideSelector(false);

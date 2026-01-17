@@ -123,6 +123,8 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
       accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string,
     });
 
+    mapRef.current = map;
+
     map.on("load", () => {
       setMapLoaded(true);
 
@@ -145,7 +147,7 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
           "fill-color": "#627BC1",
           "fill-opacity": [
             "case",
-            ["==", ["get", "iso_3166_1"], selectedCountryId],
+            ["==", ["get", "iso_3166_1"], selectedCountryId || ""], // Use explicit string for match
             0.5,
             0,
           ],
@@ -160,6 +162,9 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
         const name = props.name_en as string;
 
         setSelectedCountryId(iso);
+        // Note: Using State in Paint Property here might be stale if effect doesn't re-run, 
+        // but we update paint property dynamically below, so it's fine.
+
         map.setPaintProperty("country-layer", "fill-opacity", [
           "case",
           ["==", ["get", "iso_3166_1"], iso],
@@ -277,9 +282,15 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
         setIsDefaultView(zoom < 2.5);
       });
 
-      mapRef.current = map;
+      // mapRef.current = map; // MOVED UP
     });
-  }, [selectedCountryId]);
+
+    // Cleanup
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []); // Remove selectedCountryId dependency
 
   // Handle window resize with debounce to fit map
   useEffect(() => {
@@ -307,34 +318,22 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
     if (!mapLoaded || !mapRef.current || !visaData) return;
     const map = mapRef.current;
 
-    if (map.getLayer("visa-layer")) {
-      map.removeLayer("visa-layer");
-    }
-
-    // Add dummy data for missing countries
+    // Add dummy data for missing countries (Same logic as before)
     const missingCountries: VisaDatum[] = [
       { target_country: 'IN', visa_type: 'evisa' },
       { target_country: 'GL', visa_type: 'visa-free' },
       { target_country: 'CL', visa_type: 'visa-free' },
-      { target_country: 'XK', visa_type: 'visa-free' }, // Kosovo
+      { target_country: 'XK', visa_type: 'visa-free' },
     ];
 
-    // Combine API data with dummy data
-    // We append missingCountries unconditionally so our priority logic can select 'evisa' over 'visa-required' if needed
     const combinedVisaData = [...visaData, ...missingCountries];
-
-    // Deduplicate by code with priority order
     const priority = ["visa-free", "visa-free/90days", "visa-free/30days", "visa on arrival", "evisa", "eta", "visa-required"];
     const dedup = new Map<string, string>();
     combinedVisaData.forEach(d => {
       if (!d.target_country) return;
       const code = d.target_country.toUpperCase();
-
-      // Force fix for Chile if it comes from API with bad data
       let visaType = d.visa_type;
-      if (code === 'CL') {
-        visaType = 'visa-free';
-      }
+      if (code === 'CL') visaType = 'visa-free';
 
       const current = dedup.get(code);
       if (!current) {
@@ -348,60 +347,56 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
 
     const matchExpr: any[] = ["match", ["get", "iso_3166_1"]];
     dedup.forEach((visa_type, code) => {
-      // Skip Antarctica - it will be handled separately
-      if (code !== "AQ") {
-        matchExpr.push(code, getVisaColor(visa_type));
-      }
+      if (code !== "AQ") matchExpr.push(code, getVisaColor(visa_type));
     });
     matchExpr.push("#cccccc");
 
-    const style = map.getStyle();
-    const labelLayer = style && style.layers ? style.layers.find(l => l.id.includes("country-label")) : undefined;
-    const beforeId = labelLayer?.id;
+    // OPTIMIZATION: If layer exists, update paint property only
+    if (map.getLayer("visa-layer")) {
+      map.setPaintProperty("visa-layer", "fill-color", matchExpr as any);
+      // Also ensure it is visible
+      map.setLayoutProperty("visa-layer", "visibility", "visible");
+    } else {
+      const style = map.getStyle();
+      const labelLayer = style && style.layers ? style.layers.find(l => l.id.includes("country-label")) : undefined;
+      const beforeId = labelLayer?.id;
 
-    map.addLayer(
-      {
-        id: "visa-layer",
-        type: "fill",
-        source: "countries",
-        "source-layer": "country_boundaries",
-        layout: { visibility: "visible" },
-        // Enforce India worldview to include Kashmir as part of India
-        // Use 'any' to check if worldview is missing, 'all', OR contains 'IN'
-        // Enforce India worldview to include Kashmir as part of India
-        // Use 'any' to check if worldview is missing, 'all', OR contains 'IN'
-        // Enforce India worldview to include Kashmir as part of India
-        // Use 'any' to check if worldview is missing, 'all', OR contains 'IN'
-        // Use unambiguous expression syntax (index-of) to avoid legacy filter confusion
-        filter: [
-          "any",
-          ["!", ["has", "worldview"]],
-          ["==", ["get", "worldview"], "all"],
-          [">", ["index-of", "IN", ["coalesce", ["get", "worldview"], ""]], -1]
-        ],
-        paint: {
-          "fill-color": matchExpr as any,
-          "fill-opacity": 1,
-          "fill-outline-color": "#ffffff",
+      map.addLayer(
+        {
+          id: "visa-layer",
+          type: "fill",
+          source: "countries",
+          "source-layer": "country_boundaries",
+          layout: { visibility: "visible" },
+          filter: [
+            "any",
+            ["!", ["has", "worldview"]],
+            ["==", ["get", "worldview"], "all"],
+            [">", ["index-of", "IN", ["coalesce", ["get", "worldview"], ""]], -1]
+          ],
+          paint: {
+            "fill-color": matchExpr as any,
+            "fill-opacity": 1,
+            "fill-outline-color": "#ffffff",
+          },
         },
-      },
-      beforeId
-    );
+        beforeId
+      );
+    }
 
-    // Hide ALL labels except country labels when visa layer is visible
-    // Only do this when we actually have visa data to show
+    // Hide labels logic (lighter update)
     const style2 = map.getStyle();
     if (style2 && style2.layers && visaData && visaData.length > 0) {
       style2.layers.forEach((layer: any) => {
-        // Hide all labels except country labels
         if (layer.id && layer.type === 'symbol') {
           if (!layer.id.includes('country-label')) {
-            // This will hide: cities, states, roads, POIs, etc.
-            map.setLayoutProperty(layer.id, 'visibility', 'none');
+            if (map.getLayoutProperty(layer.id, 'visibility') !== 'none') {
+              map.setLayoutProperty(layer.id, 'visibility', 'none');
+            }
           } else {
-            // For country labels, make them white (no halo as requested)
+            // Only update if different to avoid overhead? Mapbox handles this check, but we can be safe.
             map.setPaintProperty(layer.id, 'text-color', '#ffffff');
-            map.setPaintProperty(layer.id, 'text-halo-width', 0); // Remove any halo
+            map.setPaintProperty(layer.id, 'text-halo-width', 0);
           }
         }
       });
@@ -413,99 +408,59 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
     if (!mapLoaded || !mapRef.current) return;
     const map = mapRef.current;
 
-    // Remove existing filter layer if exists
-    if (map.getLayer("filter-layer")) {
-      map.removeLayer("filter-layer");
-    }
-
-    // If no filters are active, don't add filter layer
-    // BUT if filters ARE active but result is empty (size 0), we MUST add layer to stripe everything
-    // So we only skip if we are sure no filters are active.
-    // However, filteredCountries is populated by applyFilters.
-    // If applyFilters returns empty, it means everything is filtered out.
-    // So we should NOT return early here.
-    // The only case to return early is if we want to show "All Allowed".
-    // But mapDataStore logic handles "All Allowed" by populating filteredCountries with ALL.
-    // So if size is 0, it means "Nothing Allowed". So we must show stripes.
-    // console.log('🎯 Adding filter layer for', filteredCountries.size, 'countries');
-
-    // Create filter expression for countries that should NOT have the striped overlay
-    // (i.e., countries that match the filter criteria)
-    // Use array format for "in" expression
     const filteredCountriesArray = Array.from(filteredCountries);
-    const filterExpr = ["in", ["get", "iso_3166_1"], ["literal", filteredCountriesArray]];
 
-    // Add striped pattern for non-matching countries with improved design
-    if (!map.hasImage("stripe-pattern")) {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
-      canvas.width = 16;
-      canvas.height = 16;
+    // Create filter expression
+    const filterExpr = [
+      "all",
+      ["has", "iso_3166_1"],
+      ["!", ["in", ["get", "iso_3166_1"], ["literal", filteredCountriesArray]]],
+      [
+        "any",
+        ["!", ["has", "worldview"]],
+        ["==", ["get", "worldview"], "all"],
+        [">", ["index-of", "IN", ["coalesce", ["get", "worldview"], ""]], -1]
+      ]
+    ];
 
-      // Semi-transparent white background for softer look
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.fillRect(0, 0, 16, 16);
-
-      // Add refined diagonal stripes - less aggressive than before
-      ctx.strokeStyle = 'rgba(100, 100, 100, 0.8)'; // Darker grey stripes
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      // Diagonal lines from top-left to bottom-right
-      for (let i = -16; i <= 32; i += 5) {
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i + 16, 16);
+    // OPTIMIZATION: If layer exists, just update the filter
+    if (map.getLayer("filter-layer")) {
+      map.setFilter("filter-layer", filterExpr as any);
+      // Ensure visibility
+      map.setLayoutProperty("filter-layer", "visibility", "visible");
+    } else {
+      // Only create texture if needed
+      if (!map.hasImage("stripe-pattern")) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        canvas.width = 16;
+        canvas.height = 16;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(0, 0, 16, 16);
+        ctx.strokeStyle = 'rgba(100, 100, 100, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = -16; i <= 32; i += 5) {
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i + 16, 16);
+        }
+        ctx.stroke();
+        const imageData = ctx.getImageData(0, 0, 16, 16);
+        map.addImage('stripe-pattern', imageData);
       }
-      ctx.stroke();
 
-      const imageData = ctx.getImageData(0, 0, 16, 16);
-      map.addImage('stripe-pattern', imageData);
-    }
+      const style = map.getStyle();
+      const labelLayer = style && style.layers ? style.layers.find((l: any) => l.id.includes("country-label")) : undefined;
+      const beforeId = labelLayer?.id;
 
-    // Add the filter layer with striped overlay for non-matching countries
-    const style = map.getStyle();
-    const labelLayer = style && style.layers ? style.layers.find((l: any) => l.id.includes("country-label")) : undefined;
-    const beforeId = labelLayer?.id;
-
-    map.addLayer(
-      {
-        id: "filter-layer",
-        type: "fill",
-        source: "countries",
-        "source-layer": "country_boundaries",
-        layout: { visibility: "visible" },
-        // Only apply filter pattern to countries that HAVE an ISO code but are NOT in the filtered list
-        // AND enforce India worldview (handling multi-value strings and missing properties)
-        filter: [
-          "all",
-          ["has", "iso_3166_1"],
-          // Use "!" and "in" expression to check if country is NOT in the allowed list
-          // We use "literal" to pass the array of allowed ISO codes
-          ["!", ["in", ["get", "iso_3166_1"], ["literal", filteredCountriesArray]]],
-          [
-            "any",
-            ["!", ["has", "worldview"]],
-            ["==", ["get", "worldview"], "all"],
-            [">", ["index-of", "IN", ["coalesce", ["get", "worldview"], ""]], -1]
-          ]
-        ],
-        paint: {
-          "fill-pattern": "stripe-pattern", // Taramalı pattern kullan
-          "fill-opacity": 0.8,
-        },
-      },
-      beforeId
-    );
-
-    // Add Antarctica layer - always grey striped, never red
-    if (!map.getLayer("antarctica-layer")) {
       map.addLayer(
         {
-          id: "antarctica-layer",
+          id: "filter-layer",
           type: "fill",
           source: "countries",
           "source-layer": "country_boundaries",
           layout: { visibility: "visible" },
-          filter: ["==", ["get", "iso_3166_1"], "AQ"], // Only Antarctica
+          filter: filterExpr as any,
           paint: {
             "fill-pattern": "stripe-pattern",
             "fill-opacity": 0.8,
@@ -515,7 +470,23 @@ const MapboxWorldMap = React.forwardRef<MapboxWorldMapRef, MapboxWorldMapProps>(
       );
     }
 
-    // Filter layer added
+    // Antarctica layer (static, so minimal check)
+    if (!map.getLayer("antarctica-layer")) {
+      // ... (Keep existing checks for adding unique singleton layers)
+      const style = map.getStyle();
+      const labelLayer = style && style.layers ? style.layers.find((l: any) => l.id.includes("country-label")) : undefined;
+      const beforeId = labelLayer?.id;
+      map.addLayer({
+        id: "antarctica-layer",
+        type: "fill",
+        source: "countries",
+        "source-layer": "country_boundaries",
+        layout: { visibility: "visible" },
+        filter: ["==", ["get", "iso_3166_1"], "AQ"],
+        paint: { "fill-pattern": "stripe-pattern", "fill-opacity": 0.8 },
+      }, beforeId);
+    }
+
   }, [mapLoaded, filteredCountries]);
 
 

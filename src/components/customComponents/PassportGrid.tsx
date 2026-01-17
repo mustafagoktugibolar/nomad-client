@@ -6,6 +6,7 @@ interface Passport {
   country: string;
   image: string;
   validity: string;
+  type: string;
 }
 
 interface PassportGridProps {
